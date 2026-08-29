@@ -21,16 +21,13 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = [
-    'web-production-e2cdb.up.railway.app',
-    'localhost',
-    '127.0.0.1',
-]
+# config/settings.py
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-e2cdb.up.railway.app',
-    'https://*.railway.app',
-]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1, chapar.up.railway.app').split(',') if host.strip()]
+
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://chapar.up.railway.app , https://*.railway.app').split(',') if origin.strip()]
+
+
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
