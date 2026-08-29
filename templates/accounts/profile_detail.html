@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="javascript:history.back()" style="margin-left: 15px;">←</a>
+    {{ profile.user.username }}
+</div>
+
+<div class="compose-box" style="border-bottom: 1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+        <div style="display:flex; gap:15px; align-items:center;">
+            {% if profile.photo %}
+                <img src="{{ profile.photo.url }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--border);">
+            {% else %}
+                <div style="width:80px; height:80px; border-radius:50%; background:var(--bg-panel); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:28px;">👤</div>
+            {% endif %}
+            <div>
+                <h3 style="font-size:20px; color:var(--text-main);">{{ profile.first_name }} {{ profile.last_name }}</h3>
+                <span style="color:var(--text-muted); font-size:14px;">@{{ profile.user.username }}</span>
+            </div>
+        </div>
+
+        {% if request.user == profile.user %}
+            <div style="display:flex; gap:8px;">
+                <a href="{% url 'profile_edit' %}" class="btn btn-outline btn-sm">ویرایش پروفایل</a>
+                <form action="{% url 'account_delete' %}" method="post" onsubmit="return confirm('آیا از غیرفعال‌سازی حساب خود مطمئن هستید؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">حذف اکانت</button>
+                </form>
+            </div>
+        {% else %}
+            <form action="{% url 'chat:start_direct' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="recipient" value="{{ profile.user.pk }}">
+                <button type="submit" class="btn btn-sm">ارسال پیام</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if profile.stack_choice %}
+        <span class="badge" style="margin-bottom:12px;">{{ profile.get_stack_choice_display }}</span>
+    {% endif %}
+
+    {% if profile.summary %}
+        <p style="color:var(--text-main); font-size:15px; margin-bottom:15px; white-space:pre-wrap;">{{ profile.summary }}</p>
+    {% endif %}
+
+    <div style="display:flex; flex-wrap:wrap; gap:15px; color:var(--text-muted); font-size:13px;">
+        {% if profile.email %}<span>📧 {{ profile.email }}</span>{% endif %}
+        {% if profile.github %}<a href="{{ profile.github }}" target="_blank">🐙 گیت‌هاب</a>{% endif %}
+        {% if profile.linkedin %}<a href="{{ profile.linkedin }}" target="_blank">💼 لینکدین</a>{% endif %}
+        {% if profile.telegram %}<span>✈️ {{ profile.telegram }}</span>{% endif %}
+    </div>
+</div>
+
+<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <h4 style="font-size:18px;">سوابق شغلی</h4>
+    {% if request.user == profile.user %}
+        <a href="{% url 'work_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
+    {% endif %}
+</div>
+{% for item in profile.work_experiences.all %}
+    <div class="list-item">
+        <div class="list-content">
+            <h4>{{ item.title }} @ {{ item.company }}</h4>
+            <p>{{ item.start_date }} تا {% if item.is_current %}اکنون{% else %}{{ item.end_date }}{% endif %}</p>
+        </div>
+        {% if request.user == profile.user %}
+            <div style="display:flex; gap:8px;">
+                <a href="{% url 'work_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
+                <a href="{% url 'work_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
+            </div>
+        {% endif %}
+    </div>
+{% empty %}
+    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">سابقه شغلی ثبت نشده است.</div>
+{% endfor %}
+
+<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <h4 style="font-size:18px;">تحصیلات</h4>
+    {% if request.user == profile.user %}
+        <a href="{% url 'education_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
+    {% endif %}
+</div>
+{% for item in profile.educations.all %}
+    <div class="list-item">
+        <div class="list-content">
+            <h4>{{ item.degree }} {{ item.field_of_study }}</h4>
+            <p>{{ item.school_name }}</p>
+        </div>
+        {% if request.user == profile.user %}
+            <div style="display:flex; gap:8px;">
+                <a href="{% url 'education_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
+                <a href="{% url 'education_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
+            </div>
+        {% endif %}
+    </div>
+{% empty %}
+    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">اطلاعات تحصیلی ثبت نشده است.</div>
+{% endfor %}
+
+<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <h4 style="font-size:18px;">مهارت‌ها</h4>
+    {% if request.user == profile.user %}
+        <a href="{% url 'skill_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
+    {% endif %}
+</div>
+<div style="padding: 15px 20px; display:flex; flex-wrap:wrap; gap:8px; border-bottom: 1px solid var(--border);">
+    {% for item in profile.skills.all %}
+        <div class="badge" style="display:flex; align-items:center; gap:8px; padding:6px 12px; font-size:14px;">
+            <span>{{ item.name }}</span>
+            {% if request.user == profile.user %}
+                <a href="{% url 'skill_delete' item.pk %}" style="color:var(--danger); text-decoration:none;">×</a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div style="color:var(--text-muted); font-size:14px;">مهارتی افزوده نشده است.</div>
+    {% endfor %}
+</div>
+
+<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+    <h4 style="font-size:18px;">پروژه‌ها</h4>
+    {% if request.user == profile.user %}
+        <a href="{% url 'project_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
+    {% endif %}
+</div>
+{% for item in profile.projects.all %}
+    <div class="list-item">
+        <div class="list-content">
+            <h4>{{ item.title }}</h4>
+            <p>{{ item.description }}</p>
+            {% if item.link %}<a href="{{ item.link }}" target="_blank" style="font-size:13px;">مشاهده پروژه</a>{% endif %}
+        </div>
+        {% if request.user == profile.user %}
+            <div style="display:flex; gap:8px;">
+                <a href="{% url 'project_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
+                <a href="{% url 'project_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
+            </div>
+        {% endif %}
+    </div>
+{% empty %}
+    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">پروژه‌ای ثبت نشده است.</div>
+{% endfor %}
+{% endblock %}

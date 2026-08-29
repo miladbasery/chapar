@@ -1,0 +1,13 @@
+<header style="position: sticky; top: 12px; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 24px; width: calc(100% - 24px); max-width: 1200px; margin: 0 auto; direction: rtl; box-shadow: var(--shadow-base);">
+    <button id="menuToggle" style="background: transparent; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 50%; transition: 0.2s;" onmouseover="this.style.background='var(--icon-bg-hover)'" onmouseout="this.style.background='transparent'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+    <div style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--text-main);">
+        <img src="/static/logo/logo2.png" alt="چاپار" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
+        <span>چاپار</span>
+    </div>
+    <div style="position: relative; display: flex; align-items: center;">
+        <svg style="position: absolute; right: 14px; color: var(--text-muted); pointer-events: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" placeholder="جستجو..." style="background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 10px 40px 10px 16px; border-radius: 9999px; font-size: 14px; width: 100%; max-width: 140px; outline: none; transition: 0.3s ease; font-family: inherit;" onfocus="this.style.background='var(--icon-bg-hover)'; this.style.borderColor='var(--accent)'; this.style.maxWidth='200px';" onblur="this.style.background='var(--input-bg)'; this.style.borderColor='var(--glass-border)'; this.style.maxWidth='140px';">
+    </div>
+</header>

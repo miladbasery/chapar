@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="{% url 'group_detail' topic.group.pk %}" style="margin-left: 15px; font-size:18px; color:var(--text-main);">←</a>
+    تاپیک: {{ topic.name }}
+</div>
+
+{% if request.user.is_authenticated %}
+<div class="compose-box" style="background-color: var(--bg-panel);">
+    <form action="{% url 'topic_tweet_create' topic.pk %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <textarea name="description" class="compose-textarea" placeholder="در این تاپیک توییتی بنویسید..." required style="min-height:80px;"></textarea>
+        
+        <div class="compose-actions" style="margin-top: 10px;">
+            <div>
+                <label style="cursor:pointer; color:var(--accent); font-size:14px; display:flex; align-items:center; gap:5px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 5-5 3 3V5.5c0-.276-.224-.5-.5-.5h-13zM19 15.414l-3-3-5 5-3-3-3 3V18.5c0 .276.224.5.5.5h13c.276 0 .5-.224.5-.5v-3.086zM9.75 7C8.784 7 8 7.784 8 8.75s.784 1.75 1.75 1.75 1.75-.784 1.75-1.75S10.716 7 9.75 7z"></path></svg>
+                    پیوست تصویر
+                    <input type="file" name="image" accept="image/*" style="display:none;">
+                </label>
+            </div>
+            <button type="submit" class="btn btn-sm">ارسال توییت</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div>
+    {% for tweet in tweets %}
+        {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+    {% empty %}
+        <div style="padding: 30px 20px; text-align: center; color: var(--text-muted);">
+            توییتی در این تاپیک وجود ندارد.
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

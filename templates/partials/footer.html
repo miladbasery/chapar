@@ -1,0 +1,100 @@
+<style>
+    .glass-dock {
+        position: fixed;
+        z-index: 1000;
+        background: var(--glass-bg, rgba(22, 24, 28, 0.75));
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+        display: flex;
+        box-shadow: var(--shadow-base, 0 10px 40px rgba(0, 0, 0, 0.4));
+        direction: rtl;
+        align-items: center;
+        justify-content: space-around;
+        transition: 0.3s;
+    }
+    .glass-dock a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted, #71767b);
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+    }
+    .glass-dock a:hover {
+        color: var(--text-main, #e7e9ea);
+        transform: translateY(-2px) scale(1.05);
+    }
+    .glass-dock a.compose-btn-solid {
+        color: var(--accent, #1d9bf0);
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    .glass-dock a.compose-btn-solid svg {
+        fill: var(--accent, #1d9bf0);
+        transition: 0.2s;
+    }
+    .glass-dock a.compose-btn-solid:hover svg {
+        fill: var(--accent-hover, #1a8cd8);
+        transform: scale(1.08);
+    }
+
+    @media (max-width: 768px) {
+        .glass-dock {
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 48px);
+            max-width: 420px;
+            flex-direction: row;
+            padding: 12px 16px;
+            border-radius: 9999px;
+        }
+        .glass-dock a {
+            padding: 8px;
+        }
+    }
+    @media (min-width: 769px) {
+        .glass-dock {
+            top: 50%;
+            right: 24px;
+            transform: translateY(-50%);
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px 16px;
+            border-radius: 40px;
+        }
+        .glass-dock a {
+            padding: 14px;
+            background: var(--glass-hover, rgba(255, 255, 255, 0.03));
+            border-radius: 50%;
+        }
+        .glass-dock a:hover {
+            background: var(--icon-bg-hover, rgba(255, 255, 255, 0.1));
+        }
+    }
+</style>
+
+<nav class="glass-dock">
+    <a href="{% url 'tweet_feed' %}" title="خانه">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </a>
+    <a href="{% url 'group_list' %}" title="انجمن‌ها">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    </a>
+    {% if request.user.is_authenticated %}
+    <a href="#" onclick="document.getElementById('composeModal').classList.add('active'); return false;" class="compose-btn-solid" title="توییت جدید">
+        <svg width="32" height="32" viewBox="0 0 24 24">
+            <path d="M12 2l.324.001.318.004.616.017.299.013.579.034.553.046c4.785.464 6.732 2.411 7.196 7.196l.046.553.034.579c.005.098.01.198.013.299l.017.616l.005.642-.005.642-.017.616-.013.299-.034.579-.046.553c-.464 4.785-2.411 6.732-7.196 7.196l-.553.046-.579.034c-.098.005-.198.01-.299.013l-.616.017-.642.005-.642-.005-.616-.017-.299-.013-.579-.034-.553-.046c-4.785-.464-6.732-2.411-7.196-7.196l-.046-.553-.034-.579a28.058 28.058 0 0 1-.013-.299l-.017-.616c-.003-.21-.005-.424-.005-.642l.001-.324.004-.318.017-.616.013-.299.034-.579.046-.553c.464-4.785 2.411-6.732 7.196-7.196l.553-.046.579-.034c.098-.005.198-.01.299-.013l.616-.017c.21-.003.424-.005.642-.005zm0 6a1 1 0 0 0-1 1v2h-2l-.117.007a1 1 0 0 0 .117 1.993h2v2l.007.117a1 1 0 0 0 1.993-.117v-2h2l.117-.007a1 1 0 0 0-.117-1.993h-2v-2l-.007-.117a1 1 0 0 0-.993-.883z"/>
+        </svg>
+    </a>
+    {% endif %}
+    <a href="#" title="پیام‌ها">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </a>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'profile_detail_me' %}" title="پروفایل">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </a>
+    {% endif %}
+</nav>

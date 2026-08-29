@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">انجمن‌ها</div>
+
+{% if request.user.is_authenticated %}
+<div class="compose-box">
+    <details class="dropdown">
+        <summary class="btn btn-outline" style="display:inline-block; margin-bottom:10px; cursor:pointer;">+ ساخت انجمن جدید</summary>
+        <div class="dropdown-menu" style="position:static; width:100%; box-shadow:none; border:none; padding:15px 0;">
+            <form action="{% url 'group_create' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="text" name="title" class="form-control form-group" placeholder="عنوان انجمن" required>
+                <input type="text" name="name" class="form-control form-group" placeholder="شناسه یکتا (انگلیسی، بدون فاصله)" required>
+                <input type="text" name="category" class="form-control form-group" placeholder="دسته‌بندی (مثلاً: tech)" required>
+                <textarea name="description" class="form-control form-group" placeholder="توضیحات انجمن"></textarea>
+                <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:5px;">تصویر انجمن (اختیاری):</label>
+                <input type="file" name="photo" accept="image/*" class="form-control form-group" style="font-size:12px;">
+                <button type="submit" class="btn">ایجاد انجمن</button>
+            </form>
+        </div>
+    </details>
+</div>
+{% endif %}
+
+<div>
+    {% for group in groups %}
+    <div class="list-item">
+        <div class="list-content">
+            <h4><a href="{% url 'group_detail' group.pk %}">{{ group.title }}</a></h4>
+            <p>{{ group.description|truncatewords:15 }}</p>
+        </div>
+        {% if request.user == group.owner or request.user.is_staff %}
+        <details class="dropdown" onclick="event.stopPropagation()">
+            <summary class="action-btn" style="cursor:pointer; font-size:18px;">•••</summary>
+            <div class="dropdown-menu" style="right:0; left:auto; min-width:260px;">
+                <form action="{% url 'group_edit' group.pk %}" method="post" enctype="multipart/form-data" class="form-group" style="margin-bottom:10px;">
+                    {% csrf_token %}
+                    <input type="text" name="title" class="form-control form-group" value="{{ group.title }}" required>
+                    <input type="text" name="name" class="form-control form-group" value="{{ group.name }}" required>
+                    <input type="text" name="category" class="form-control form-group" value="{{ group.category }}" required>
+                    <textarea name="description" class="form-control form-group">{{ group.description }}</textarea>
+                    <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:5px;">ویرایش تصویر:</label>
+                    <input type="file" name="photo" accept="image/*" class="form-control form-group" style="font-size:12px;">
+                    <button type="submit" class="btn btn-sm" style="width:100%;">ویرایش انجمن</button>
+                </form>
+                <form action="{% url 'group_delete' group.pk %}" method="post" onsubmit="return confirm('آیا از حذف کامل این انجمن مطمئن هستید؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%;">حذف انجمن</button>
+                </form>
+            </div>
+        </details>
+        {% endif %}
+    </div>
+    {% empty %}
+        <div style="padding: 30px; text-align: center; color: var(--text-muted);">هنوز هیچ انجمنی ساخته نشده است.</div>
+    {% endfor %}
+</div>
+{% endblock %}

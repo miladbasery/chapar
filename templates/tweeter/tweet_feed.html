@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .feed-masonry {
+        column-count: 1;
+        column-gap: 20px;
+        padding: 20px 0 100px 0;
+        width: calc(100% - 24px);
+        max-width: 1200px;
+        margin: 0 auto;
+        direction: rtl;
+    }
+    @media (min-width: 768px) {
+        .feed-masonry {
+            column-count: 2;
+        }
+    }
+    @media (min-width: 992px) {
+        .feed-masonry {
+            column-count: 3;
+            padding-bottom: 20px;
+        }
+    }
+    .masonry-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        margin-bottom: 20px;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+</style>
+
+<div class="feed-masonry" id="feedContainer">
+    {% for tweet in tweets %}
+        <div class="masonry-item">
+            {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+        </div>
+    {% empty %}
+        <div class="masonry-item" style="padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 16px; background: var(--glass-bg); border-radius: 24px; border: 1px solid var(--glass-border);">
+            هیچ توییتی برای نمایش وجود ندارد. اولین نفر باشید!
+        </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_next %}
+<div id="infinite-scroll-trigger" data-next="{{ page_obj.next_page_number }}" style="height: 20px;"></div>
+{% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const trigger = document.getElementById('infinite-scroll-trigger');
+        if (!trigger) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                const nextPage = trigger.getAttribute('data-next');
+                if (!nextPage) return;
+
+                fetch(`?page=${nextPage}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newItems = doc.querySelectorAll('.masonry-item');
+                    const container = document.getElementById('feedContainer');
+                    
+                    newItems.forEach(item => {
+                        container.appendChild(item);
+                        const textEl = item.querySelector('.tweet-text-content');
+                        if (textEl) {
+                            textEl.innerHTML = textEl.innerHTML.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/accounts/profile/$1/" onclick="event.stopPropagation()" style="color:var(--accent); text-decoration:none;">@$1</a>');
+                        }
+                    });
+                    
+                    const newTrigger = doc.getElementById('infinite-scroll-trigger');
+                    if (newTrigger) {
+                        trigger.setAttribute('data-next', newTrigger.getAttribute('data-next'));
+                    } else {
+                        trigger.removeAttribute('data-next');
+                        observer.disconnect();
+                    }
+                });
+            }
+        });
+        observer.observe(trigger);
+    });
+</script>
+{% endblock %}

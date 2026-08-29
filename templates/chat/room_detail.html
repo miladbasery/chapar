@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <a href="{% url 'chat:room_list' %}" style="margin-left: 15px;">←</a>
+        {% for p in room.participants.all %}
+            {% if p != request.user %}{{ p.username }}{% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div id="chat-box" style="padding: 20px; height: calc(100vh - 200px); overflow-y: auto; display:flex; flex-direction:column; gap:12px;">
+    {% for msg in chat_messages %}
+        <div style="max-width:70%; padding:10px 15px; border-radius:16px; font-size:14px; {% if msg.sender == request.user %}align-self:flex-start; background:var(--accent); color:#fff;{% else %}align-self:flex-end; background:var(--bg-panel); color:var(--text-main); border:1px solid var(--border);{% endif %}">
+            {% if msg.text %}<p style="margin-bottom:4px; white-space:pre-wrap;">{{ msg.text }}</p>{% endif %}
+            {% if msg.image %}<img src="{{ msg.image.url }}" style="max-width:100%; border-radius:8px; margin-bottom:4px;">{% endif %}
+            {% if msg.sticker %}<img src="{{ msg.sticker.image_file.url }}" style="width:100px; height:100px; object-fit:contain;">{% endif %}
+            <span style="font-size:10px; opacity:0.7; display:block; text-align:left;">{{ msg.created_at|date:"H:i" }}</span>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="compose-box" style="padding: 10px 15px; background:var(--bg); border-top:1px solid var(--border); display:flex; gap:10px; align-items:center;">
+    <input type="text" id="chat-input" class="form-control" placeholder="پیام خود را بنویسید..." style="border-radius:20px;">
+    
+    <details class="dropdown">
+        <summary class="btn btn-outline btn-sm" style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center;">🎨</summary>
+        <div class="dropdown-menu" style="bottom:100%; top:auto; margin-bottom:10px; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+            {% for sticker in stickers %}
+                <img src="{{ sticker.image_file.url }}" onclick="sendSticker('{{ sticker.id }}')" style="width:60px; height:60px; cursor:pointer; object-fit:contain;">
+            {% endfor %}
+        </div>
+    </details>
+
+    <button id="send-btn" class="btn" style="border-radius:50%; width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center;">➤</button>
+</div>
+
+<script>
+    const roomId = "{{ room.id }}";
+    const currentUserId = "{{ request.user.id }}";
+    const chatBox = document.getElementById('chat-box');
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomId}/`);
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const isMe = data.sender_id === currentUserId;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.style.maxWidth = "70%";
+        msgDiv.style.padding = "10px 15px";
+        msgDiv.style.borderRadius = "16px";
+        msgDiv.style.fontSize = "14px";
+        msgDiv.style.alignSelf = isMe ? "flex-start" : "flex-end";
+        msgDiv.style.background = isMe ? "var(--accent)" : "var(--bg-panel)";
+        msgDiv.style.color = isMe ? "#fff" : "var(--text-main)";
+        if(!isMe) msgDiv.style.border = "1px solid var(--border)";
+
+        let content = '';
+        if(data.text) content += `<p style="margin-bottom:4px; white-space:pre-wrap;">${data.text}</p>`;
+        if(data.sticker_url) content += `<img src="${data.sticker_url}" style="width:100px; height:100px; object-fit:contain;">`;
+        content += `<span style="font-size:10px; opacity:0.7; display:block; text-align:left;">${data.created_at}</span>`;
+
+        msgDiv.innerHTML = content;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(text) {
+            chatSocket.send(JSON.stringify({
+                'message_type': 'text',
+                'text': text
+            }));
+            input.value = '';
+        }
+    }
+
+    function sendSticker(stickerId) {
+        chatSocket.send(JSON.stringify({
+            'message_type': 'sticker',
+            'sticker_id': stickerId
+        }));
+    }
+
+    document.getElementById('send-btn').onclick = sendMessage;
+    document.getElementById('chat-input').onkeyup = function(e) {
+        if(e.key === 'Enter') sendMessage();
+    };
+</script>
+{% endblock %}

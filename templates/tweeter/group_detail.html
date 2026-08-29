@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="{% url 'group_list' %}" style="margin-left: 15px; font-size:18px; color:var(--text-main);">←</a>
+    {{ group.title }}
+</div>
+
+<div class="compose-box">
+    {% if group.photo %}
+    <div style="margin-bottom: 15px;">
+        <img src="{{ group.photo.url }}" style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border);">
+    </div>
+    {% endif %}
+    
+    <p style="margin-bottom: 15px; color: var(--text-main); line-height: 1.6;">{{ group.description }}</p>
+    
+    {% if request.user == group.owner or request.user.is_staff %}
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <a href="{% url 'group_moderation' group.pk %}" class="btn btn-outline btn-sm">مدیریت توییت‌ها</a>
+        
+        <details class="dropdown" style="flex:1;">
+            <summary class="btn btn-outline btn-sm" style="cursor:pointer; display:inline-block;">+ تاپیک جدید</summary>
+            <div class="dropdown-menu" style="position:static; width:100%; box-shadow:none; border:none; padding:15px 0 0 0;">
+                <form action="{% url 'topic_create' group.pk %}" method="post">
+                    {% csrf_token %}
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" name="name" class="form-control" placeholder="نام تاپیک (مثال: برنامه‌نویسی)" required style="flex:1;">
+                        <button type="submit" class="btn btn-sm">ثبت</button>
+                    </div>
+                </form>
+            </div>
+        </details>
+    </div>
+    {% endif %}
+</div>
+
+<div style="border-bottom: 1px solid var(--border); padding: 15px 20px; font-weight: bold; color: var(--text-muted);">
+    لیست تاپیک‌ها
+</div>
+
+<div>
+    {% for topic in topics %}
+    <div class="list-item">
+        <div class="list-content">
+            <h4 style="margin-bottom:5px;"><a href="{% url 'topic_detail' topic.pk %}" style="color:var(--text-main);"># {{ topic.name }}</a></h4>
+            <p style="font-size:13px; color:var(--text-muted);">{{ topic.tweets.count }} توییت</p>
+        </div>
+        
+        {% if request.user == group.owner or request.user.is_staff %}
+        <details class="dropdown" onclick="event.stopPropagation()">
+            <summary class="action-btn" style="cursor:pointer; font-size:18px;">•••</summary>
+            <div class="dropdown-menu" style="right:0; left:auto; min-width:250px;">
+                <form action="{% url 'topic_edit' topic.pk %}" method="post" style="margin-bottom:10px;">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" name="name" class="form-control" value="{{ topic.name }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-sm" style="width:100%;">ویرایش نام تاپیک</button>
+                </form>
+                <form action="{% url 'topic_delete' topic.pk %}" method="post" onsubmit="return confirm('با حذف این تاپیک تمام توییت‌های آن حذف خواهند شد. ادامه می‌دهید؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%;">حذف تاپیک</button>
+                </form>
+            </div>
+        </details>
+        {% endif %}
+    </div>
+    {% empty %}
+        <div style="padding: 20px; text-align: center; color: var(--text-muted);">تاپیکی ایجاد نشده است.</div>
+    {% endfor %}
+</div>
+{% endblock %}

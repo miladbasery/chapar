@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="{% url 'group_detail' group.pk %}" style="margin-left: 15px; font-size:18px; color:var(--text-main);">←</a>
+    مدیریت توییت‌های در انتظار تایید
+</div>
+
+<div>
+    {% for tweet in pending_tweets %}
+    <div class="tweet" style="border-bottom: 5px solid var(--bg-panel);">
+        <div class="tweet-header">
+            <div class="tweet-meta" style="margin-bottom: 10px;">
+                <span class="tweet-author">{{ tweet.user.username }}</span>
+                <span class="tweet-time">{{ tweet.created_at|timesince }} پیش</span>
+            </div>
+            <span class="badge" style="background-color: rgba(29, 155, 240, 0.1); color: var(--accent);">تاپیک: {{ tweet.topic.name }}</span>
+        </div>
+        
+        <div class="tweet-content" style="margin-top: 10px;">
+            {{ tweet.description|linebreaksbr }}
+        </div>
+        
+        {% if tweet.images.all %}
+        <div style="margin-top: 10px;">
+            {% for img in tweet.images.all %}
+                <img src="{{ img.image.url }}" class="tweet-media" alt="تصویر پیوست">
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <form action="{% url 'tweet_status_update' tweet.pk %}" method="post" style="flex: 1;">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="approved">
+                <button type="submit" class="btn" style="width: 100%; background-color: var(--success); color: white;">تایید انتشار</button>
+            </form>
+            <form action="{% url 'tweet_status_update' tweet.pk %}" method="post" style="flex: 1;">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="rejected">
+                <button type="submit" class="btn btn-danger" style="width: 100%;">رد کردن</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+        <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+            هیچ توییتی در انتظار تایید نیست.
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">ایجاد حساب جدید</div>
+<div class="compose-box" style="padding: 30px 20px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div style="background: rgba(244, 33, 46, 0.1); border: 1px solid var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                {% for error in form.non_field_errors %}
+                    <p style="color: var(--danger); font-size: 14px; margin: 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">نام کاربری</label>
+            <input type="text" name="username" class="form-control" value="{{ form.username.value|default:'' }}" required>
+            {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:4px;">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">کد دعوت اختصاصی</label>
+            <input type="text" name="invite_code" class="form-control" value="{{ form.invite_code.value|default:'' }}" required>
+            {% if form.invite_code.errors %}
+                {% for error in form.invite_code.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:4px;">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">رمز عبور</label>
+            <input type="password" name="password1" class="form-control" required>
+            {% if form.password1.errors %}
+                {% for error in form.password1.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:4px;">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">تکرار رمز عبور</label>
+            <input type="password" name="password2" class="form-control" required>
+            {% if form.password2.errors %}
+                {% for error in form.password2.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:4px;">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn" style="width:100%; margin-top:10px;">ثبت‌نام</button>
+    </form>
+    <div style="margin-top:20px; text-align:center; font-size:14px; color:var(--text-muted);">
+        قبلاً ثبت‌نام کرده‌اید؟ <a href="{% url 'login' %}">وارد شوید</a>
+    </div>
+</div>
+{% endblock %}

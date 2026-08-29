@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="{% url 'profile_detail_me' %}" style="margin-left: 15px;">←</a>
+    تایید حذف
+</div>
+<div class="compose-box" style="padding: 30px 20px; text-align:center;">
+    <h3 style="margin-bottom:15px;">آیا از حذف این آیتم اطمینان دارید؟</h3>
+    <p style="color:var(--text-muted); margin-bottom:25px; font-size:14px;">این عملیات غیرقابل بازگشت خواهد بود.</p>
+    <form method="post" style="display:flex; justify-content:center; gap:15px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">بله، حذف کن</button>
+        <a href="{% url 'profile_detail_me' %}" class="btn btn-outline">انصراف</a>
+    </form>
+</div>
+{% endblock %}

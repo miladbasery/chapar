@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جامعه برنامه نویسان چاپار</title>
+    <style>
+        @font-face {
+            font-family: 'ChaparFont';
+            src: url('/static/fonts/font.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg: #000000;
+            --bg-panel: #16181c;
+            --text-main: #e7e9ea;
+            --text-muted: #71767b;
+            --accent: #1d9bf0;
+            --accent-hover: #1a8cd8;
+            --success: #00ba7c;
+            --danger: #f4212e;
+            
+            --glass-bg: rgba(22, 24, 28, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.03);
+            --glass-border-hover: rgba(255, 255, 255, 0.12);
+            --modal-bg: rgba(22, 24, 28, 0.95);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --icon-bg-hover: rgba(255, 255, 255, 0.1);
+            --shadow-base: 0 4px 15px rgba(0,0,0,0.2);
+            
+            --font-family: 'ChaparFont', sans-serif;
+        }
+
+        body.light-mode {
+            --bg: #f0f2f5;
+            --bg-panel: #ffffff;
+            --text-main: #0f1419;
+            --text-muted: #536471;
+            
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --glass-hover: rgba(0, 0, 0, 0.03);
+            --glass-border-hover: rgba(0, 0, 0, 0.15);
+            --modal-bg: rgba(255, 255, 255, 0.98);
+            --input-bg: rgba(0, 0, 0, 0.05);
+            --icon-bg-hover: rgba(0, 0, 0, 0.06);
+            --shadow-base: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            direction: rtl;
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .glass-dock {
+            position: fixed;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            box-shadow: var(--shadow-base);
+            direction: rtl;
+            align-items: center;
+            justify-content: space-around;
+            transition: 0.3s;
+        }
+        .glass-dock a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            position: relative;
+        }
+        .glass-dock a:hover {
+            color: var(--text-main);
+            transform: translateY(-2px) scale(1.05);
+        }
+        .glass-dock .compose-btn {
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(29, 155, 240, 0.4);
+        }
+        .glass-dock .compose-btn:hover {
+            background: var(--accent-hover);
+            color: #fff;
+            transform: translateY(-4px) scale(1.1);
+        }
+        @media (max-width: 768px) {
+            .glass-dock {
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 48px);
+                max-width: 420px;
+                flex-direction: row;
+                padding: 10px 16px;
+                border-radius: 9999px;
+            }
+            .glass-dock a { padding: 8px 12px; }
+            .glass-dock .compose-btn { padding: 10px; margin: 0 4px; }
+        }
+        @media (min-width: 769px) {
+            .glass-dock {
+                top: 50%;
+                right: 24px;
+                transform: translateY(-50%);
+                flex-direction: column;
+                gap: 20px;
+                padding: 24px 16px;
+                border-radius: 40px;
+            }
+            .glass-dock a { padding: 14px; background: var(--glass-hover); border-radius: 50%; }
+            .glass-dock a:hover { background: var(--icon-bg-hover); }
+            .glass-dock .compose-btn { background: var(--accent) !important; padding: 16px; }
+        }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 10000; align-items: flex-end; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal-bottom {
+            background: var(--modal-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 600px;
+            padding: 24px;
+            margin: auto auto 0 auto;
+            border-bottom: none;
+            transition: 0.3s;
+        }
+        @media (min-width: 768px) {
+            .modal-bottom {
+                border-radius: 24px;
+                margin: auto;
+                border-bottom: 1px solid var(--glass-border);
+            }
+        }
+        
+        .char-counter { font-size: 12px; color: var(--text-muted); transition: color 0.3s; }
+        .char-counter.warning { color: #f9a825; }
+        .char-counter.error { color: var(--danger); }
+
+        .image-preview-container { display: flex; gap: 10px; overflow-x: auto; padding-top: 10px; }
+        .image-preview-item { position: relative; width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0; }
+        .image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        #imageLightbox {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 99999; align-items: center; justify-content: center;
+        }
+        #imageLightbox.active { display: flex; }
+        #imageLightbox img { max-width: 90%; max-height: 90%; border-radius: 16px; object-fit: contain; }
+
+        .tweet-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: 0.3s;
+            height: 100%;
+            box-sizing: border-box;
+            box-shadow: var(--shadow-base);
+        }
+        .tweet-card:hover {
+            background: var(--glass-hover);
+            border-color: var(--glass-border-hover);
+        }
+        
+        .dropdown-menu {
+            position: absolute; left: 0; top: 100%;
+            background: var(--modal-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 8px; width: 160px;
+            z-index: 50; box-shadow: var(--shadow-base); margin-top: 5px;
+        }
+        .dropdown-btn {
+            width: 100%; text-align: right; background: transparent; border: none;
+            color: var(--text-main); padding: 10px; border-radius: 8px; cursor: pointer;
+            font-family: inherit; transition: 0.2s;
+        }
+        .dropdown-btn:hover { background: var(--icon-bg-hover); }
+        .dropdown-btn.danger { color: var(--danger); }
+        .dropdown-btn.danger:hover { background: rgba(244, 33, 46, 0.1); }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;">
+        {% for message in messages %}
+            <div style="padding: 12px 20px; border-radius: 12px; background: var(--accent); color: #fff; box-shadow: var(--shadow-base);">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% include 'partials/header.html' %}
+
+    <div style="width: 100%; max-width: 100%; padding: 0;">
+        {% include 'partials/sidebar.html' %}
+
+        <main style="width: 100%; max-width: 100%; margin: 0 auto;">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+<nav class="glass-dock">
+    <a href="{% url 'tweet_feed' %}" title="خانه">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </a>
+    <a href="{% url 'group_list' %}" title="انجمن‌ها">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    </a>
+    {% if request.user.is_authenticated %}
+    <a href="#" onclick="document.getElementById('composeModal').classList.add('active'); return false;" class="compose-btn-solid" title="توییت جدید">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M21.25 12C21.2516 13.2141 21.0135 14.4167 20.5493 15.5389C20.0852 16.6611 19.4041 17.6809 18.545 18.54C17.6859 19.3991 16.6656 20.0806 15.5426 20.5456C14.4196 21.0106 13.2158 21.25 12 21.25C10.6915 21.2531 9.39742 20.9767 8.20459 20.4394L4.33751 21.0116C4.14525 21.0433 3.94812 21.0275 3.76336 20.9656C3.57861 20.9037 3.41183 20.7976 3.27761 20.6565C3.14339 20.5154 3.04581 20.3436 2.99339 20.1562C2.94096 19.9687 2.93529 19.7713 2.97688 19.5812L3.51397 15.6595C3.00433 14.5069 2.74404 13.2599 2.7501 12C2.74854 10.7858 2.98663 9.58326 3.45079 8.46107C3.91494 7.33888 4.59603 6.31908 5.45513 5.45998C6.31422 4.60088 7.33446 3.91935 8.45749 3.45434C9.58052 2.98934 10.7843 2.75 12 2.75C13.2158 2.75 14.4196 2.98934 15.5426 3.45434C16.6656 3.91935 17.6859 4.60088 18.545 5.45998C19.4041 6.31908 20.0852 7.33888 20.5493 8.46107C21.0135 9.58326 21.2516 10.7858 21.25 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M11.6933 7.81647V15.6114" stroke="currentColor" stroke-width="1.8" stroke-miterlimit="10" stroke-linecap="round"></path>
+            <path d="M7.79929 11.7224H15.6042" stroke="currentColor" stroke-width="1.8" stroke-miterlimit="10" stroke-linecap="round"></path>
+        </svg>
+    </a>
+    {% endif %}
+    <a href="#" title="پیام‌ها">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </a>
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'profile_detail_me' %}" title="پروفایل">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </a>
+    {% endif %}
+</nav>
+
+    {% if request.user.is_authenticated %}
+    <div id="composeModal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
+        <div class="modal-bottom">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                <button type="button" onclick="document.getElementById('composeModal').classList.remove('active')" style="background:transparent; border:none; color:var(--text-main); font-size:28px; cursor:pointer;">×</button>
+                <span style="color:var(--text-main); font-weight:700; font-size:18px;">توییت جدید</span>
+                <div style="width: 28px;"></div>
+            </div>
+            <form action="{% url 'tweet_create' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 15px;">
+                    <select name="topic_id" style="width:100%; background:var(--input-bg); border:1px solid var(--glass-border); color:var(--text-main); padding:12px; border-radius:14px; font-size:14px; font-family:inherit; outline:none;">
+                        <option value="" style="background:var(--bg-panel);">+ انتخاب تاپیک (اختیاری)</option>
+                        {% for t in popular_topics %}
+                            <option value="{{ t.id }}" style="background:var(--bg-panel);">{{ t.name }} ({{ t.group.title }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <textarea name="description" id="composeTextarea" maxlength="1000" placeholder="چه اتفاقی افتاده؟" required style="width:100%; background:transparent; border:none; color:var(--text-main); font-size:17px; min-height:140px; resize:none; outline:none; font-family:inherit;" oninput="updateCharCount(this, 'composeCounter')"></textarea>
+                <div id="imagePreviewContainer" class="image-preview-container"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid var(--glass-border);">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <label style="cursor:pointer; color:var(--accent); display:flex; align-items:center; justify-content:center; padding:8px; border-radius:50%; transition:0.2s;" onmouseover="this.style.background='var(--icon-bg-hover)'" onmouseout="this.style.background='transparent'">
+                            <input type="file" name="images" multiple accept="image/*" style="display:none;" onchange="previewImages(this, 'imagePreviewContainer')">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.75 2H4.25C3.01 2 2 3.01 2 4.25v15.5C2 20.99 3.01 22 4.25 22h15.5c1.24 0 2.25-1.01 2.25-2.25V4.25C22 3.01 20.99 2 19.75 2zM4.25 3.5h15.5c.413 0 .75.337.75.75v9.676l-3.858-3.858c-.14-.14-.33-.22-.53-.22h-.008c-.198 0-.389.079-.53.22l-4.225 4.225-2.853-2.853c-.14-.14-.33-.22-.53-.22h-.008c-.198 0-.389.079-.53.22l-2.983 2.983V4.25c0-.413.337-.75.75-.75zm15.5 17H4.25c-.413 0-.75-.337-.75-.75v-2.02l3.483-3.483 2.853 2.853c.14.14.33.22.53.22h.008c.198 0 .389-.079.53-.22l4.225-4.225 3.358 3.358v5.526c0 .413-.337.75-.75.75zM12 9c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0-4.5c-.827 0-1.5.673-1.5 1.5s.673 1.5 1.5 1.5 1.5-.673 1.5-1.5-.673-1.5-1.5-1.5z"></path></svg>
+                        </label>
+                        <span id="composeCounter" class="char-counter">0 / 1000</span>
+                    </div>
+                    <button type="submit" style="background:var(--accent); color:#fff; border:none; padding:10px 24px; border-radius:9999px; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit;">پست کردن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="retweetModal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')">
+        <div class="modal-bottom">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                <button type="button" onclick="document.getElementById('retweetModal').classList.remove('active')" style="background:transparent; border:none; color:var(--text-main); font-size:28px; cursor:pointer;">×</button>
+                <span style="color:var(--text-main); font-weight:700; font-size:18px;">نقل‌قول و بازنشر</span>
+                <div style="width: 28px;"></div>
+            </div>
+            <form action="{% url 'tweet_create' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="retweet_of_id" id="globalRetweetId">
+                <textarea name="description" class="compose-textarea" maxlength="1000" placeholder="نظرتان را درباره این توییت بنویسید..." required style="width:100%; background:transparent; border:none; color:var(--text-main); font-size:17px; min-height:100px; resize:none; outline:none; font-family:inherit; margin-bottom:15px;"></textarea>
+                <div style="display:flex; justify-content:flex-end; padding-top:15px; border-top:1px solid var(--glass-border);">
+                    <button type="submit" style="background:var(--success); color:#fff; border:none; padding:10px 24px; border-radius:9999px; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit;">بازنشر کردن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="imageLightbox" onclick="this.classList.remove('active')">
+        <img id="lightboxImg" src="" alt="Fullscreen">
+    </div>
+
+    <script>
+        function updateCharCount(textarea, counterId) {
+            const counter = document.getElementById(counterId);
+            const len = textarea.value.length;
+            counter.textContent = `${len} / 1000`;
+            if (len > 900) counter.className = 'char-counter error';
+            else if (len > 800) counter.className = 'char-counter warning';
+            else counter.className = 'char-counter';
+        }
+
+        function previewImages(input, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            if (input.files) {
+                Array.from(input.files).slice(0, 5).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'image-preview-item';
+                        div.innerHTML = `<img src="${e.target.result}">`;
+                        container.appendChild(div);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function openRetweetModal(tweetId) {
+            const modal = document.getElementById('retweetModal');
+            if (modal) {
+                document.getElementById('globalRetweetId').value = tweetId;
+                modal.classList.add('active');
+            }
+        }
+
+        function openLightbox(src) {
+            const lightbox = document.getElementById('imageLightbox');
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            lightbox.classList.add('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const tweetTexts = document.querySelectorAll('.tweet-text-content');
+            tweetTexts.forEach(el => {
+                const text = el.innerHTML;
+                const replacedText = text.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/accounts/profile/$1/" onclick="event.stopPropagation()" style="color:var(--accent); text-decoration:none;">@$1</a>');
+                el.innerHTML = replacedText;
+            });
+
+            const body = document.body;
+            const themeMobile = document.getElementById('themeToggleMobile');
+            const themeDesktop = document.getElementById('themeToggleDesktop');
+            if (localStorage.getItem('theme') === 'light') body.classList.add('light-mode');
+            function toggleTheme() {
+                body.classList.toggle('light-mode');
+                localStorage.setItem('theme', body.classList.contains('light-mode') ? 'light' : 'dark');
+            }
+            if(themeMobile) themeMobile.addEventListener('click', toggleTheme);
+            if(themeDesktop) themeDesktop.addEventListener('click', toggleTheme);
+
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const closeSidebar = document.getElementById('closeSidebar');
+
+            if(menuToggle && sidebar && overlay) {
+                menuToggle.addEventListener('click', () => { sidebar.style.right = '0'; overlay.style.display = 'block'; });
+                const hideSidebar = () => { sidebar.style.right = '-320px'; overlay.style.display = 'none'; };
+                overlay.addEventListener('click', hideSidebar);
+                if(closeSidebar) closeSidebar.addEventListener('click', hideSidebar);
+            }
+        });
+    </script>
+</body>
+</html>

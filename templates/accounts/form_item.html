@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <a href="{% url 'profile_detail_me' %}" style="margin-left: 15px;">←</a>
+    مدیریت بخش رزومه
+</div>
+<div class="compose-box" style="padding: 25px 20px;">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:var(--text-muted);">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span style="color:var(--danger); font-size:12px;">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn" style="width:100%; margin-top:10px;">ثبت تغییرات</button>
+    </form>
+</div>
+<script>
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        if(el.type !== 'checkbox') el.classList.add('form-control');
+    });
+</script>
+{% endblock %}

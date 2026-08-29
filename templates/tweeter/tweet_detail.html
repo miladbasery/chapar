@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .tweet-detail-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        width: calc(100% - 24px);
+        max-width: 1200px;
+        margin: 20px auto 100px auto;
+        direction: rtl;
+    }
+    @media (min-width: 992px) {
+        .tweet-detail-container {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+        }
+    }
+    .sticky-main-tweet {
+        position: sticky;
+        top: 85px;
+    }
+    .threaded-replies-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .thread-line {
+        position: absolute;
+        top: 40px;
+        bottom: 40px;
+        right: 38px;
+        width: 2px;
+        background: var(--glass-border);
+        z-index: 0;
+    }
+    .masonry-item {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: block;
+    }
+</style>
+
+<div class="tweet-detail-container">
+    
+    <div class="sticky-main-tweet">
+        <div class="masonry-item">
+            {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+        </div>
+
+        {% if request.user.is_authenticated %}
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="document.getElementById('replyModal_{{ tweet.pk }}').classList.add('active')" style="background: var(--accent); color: #fff; border: none; padding: 14px 40px; border-radius: 9999px; font-weight: 700; font-size: 16px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 15px rgba(29, 155, 240, 0.4); transition: 0.2s; width: 100%;" onmouseover="this.style.background='var(--accent-hover)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--accent)'; this.style.transform='translateY(0)';">ثبت پاسخ جدید</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="threaded-replies-container">
+        {% if replies %}
+        <div class="thread-line"></div>
+        {% endif %}
+        
+        {% for reply in replies %}
+            <div class="masonry-item">
+                {% include 'tweeter/tweet_card.html' with tweet=reply %}
+            </div>
+        {% empty %}
+            <div style="text-align: center; color: var(--text-muted); font-size: 15px; padding: 40px 20px; background: var(--glass-bg); border-radius: 24px; border: 1px solid var(--glass-border);">
+                هنوز پاسخی ثبت نشده است. اولین نفر باشید!
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% if request.user.is_authenticated %}
+<div id="replyModal_{{ tweet.pk }}" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('active')" style="z-index: 10000; padding: 0;">
+    <div class="modal-bottom">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+            <button type="button" onclick="document.getElementById('replyModal_{{ tweet.pk }}').classList.remove('active')" style="background:transparent; border:none; color:var(--text-main); font-size:28px; cursor:pointer;">×</button>
+            <span style="color:var(--text-main); font-weight:700; font-size:18px;">پاسخ دادن</span>
+            <div style="width: 28px;"></div>
+        </div>
+        <form action="{% url 'tweet_reply_create' tweet.pk %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <textarea name="description" id="replyTextarea_{{ tweet.pk }}" maxlength="1000" placeholder="پاسخ خود را بنویسید..." required style="width:100%; background:transparent; border:none; color:var(--text-main); font-size:17px; min-height:140px; resize:none; outline:none; font-family:inherit;" oninput="updateCharCount(this, 'replyCounter_{{ tweet.pk }}')"></textarea>
+            
+            <div id="replyImagePreviewContainer_{{ tweet.pk }}" class="image-preview-container"></div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:15px; border-top:1px solid var(--glass-border);">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <label style="cursor:pointer; color:var(--accent); display:flex; align-items:center; justify-content:center; padding:8px; border-radius:50%; transition:0.2s;" onmouseover="this.style.background='var(--icon-bg-hover)'" onmouseout="this.style.background='transparent'">
+                        <input type="file" name="images" multiple accept="image/*" style="display:none;" onchange="previewImages(this, 'replyImagePreviewContainer_{{ tweet.pk }}')">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.75 2H4.25C3.01 2 2 3.01 2 4.25v15.5C2 20.99 3.01 22 4.25 22h15.5c1.24 0 2.25-1.01 2.25-2.25V4.25C22 3.01 20.99 2 19.75 2zM4.25 3.5h15.5c.413 0 .75.337.75.75v9.676l-3.858-3.858c-.14-.14-.33-.22-.53-.22h-.008c-.198 0-.389.079-.53.22l-4.225 4.225-2.853-2.853c-.14-.14-.33-.22-.53-.22h-.008c-.198 0-.389.079-.53.22l-2.983 2.983V4.25c0-.413.337-.75.75-.75zm15.5 17H4.25c-.413 0-.75-.337-.75-.75v-2.02l3.483-3.483 2.853 2.853c.14.14.33.22.53.22h.008c.198 0 .389-.079.53-.22l4.225-4.225 3.358 3.358v5.526c0 .413-.337.75-.75.75zM12 9c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0-4.5c-.827 0-1.5.673-1.5 1.5s.673 1.5 1.5 1.5 1.5-.673 1.5-1.5-.673-1.5-1.5-1.5z"></path></svg>
+                    </label>
+                    <span id="replyCounter_{{ tweet.pk }}" class="char-counter">0 / 1000</span>
+                </div>
+                <button type="submit" style="background:var(--accent); color:#fff; border:none; padding:10px 24px; border-radius:9999px; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit;">پاسخ دادن</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

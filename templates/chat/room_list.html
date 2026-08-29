@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">گفتگوها و پیام‌ها</div>
+
+<div class="compose-box">
+    <form action="{% url 'chat:start_direct' %}" method="post" style="display:flex; gap:10px;">
+        {% csrf_token %}
+        <select name="recipient" class="form-control" style="flex:1;" required>
+            <option value="">انتخاب کاربر برای آغاز پیام مستقیم...</option>
+            {% for u in form.fields.recipient.queryset %}
+                <option value="{{ u.pk }}">{{ u.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">شروع چت</button>
+    </form>
+</div>
+
+<div>
+    {% for room in rooms %}
+        <div class="list-item" onclick="window.location='{% url 'chat:room_detail' room.id %}'" style="cursor:pointer;">
+            <div class="list-content">
+                <h4>
+                    {% for p in room.participants.all %}
+                        {% if p != request.user %}{{ p.username }}{% endif %}
+                    {% endfor %}
+                </h4>
+                <p>{{ room.messages.last.text|default:'(تصویر یا استیکر)'|truncatechars:40 }}</p>
+            </div>
+            <span style="color:var(--text-muted); font-size:12px;">{{ room.messages.last.created_at|date:"H:i" }}</span>
+        </div>
+    {% empty %}
+        <div style="padding: 30px; text-align: center; color: var(--text-muted);">هنوز هیچ گفتگویی ایجاد نشده است.</div>
+    {% endfor %}
+</div>
+{% endblock %}
