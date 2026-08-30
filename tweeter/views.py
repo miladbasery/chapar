@@ -123,6 +123,20 @@ class GroupDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['topics'] = self.object.topics.annotate(tweet_count=Count('tweets')).order_by('-created_at')
+        
+        active_users_count = User.objects.filter(
+            tweets__topic__group=self.object,
+            tweets__status=TweetStatusChoices.APPROVED
+        ).distinct().count()
+        
+        owner_has_posted = User.objects.filter(
+            id=self.object.owner.id, 
+            tweets__topic__group=self.object, 
+            tweets__status=TweetStatusChoices.APPROVED
+        ).exists()
+        
+        context['active_members_count'] = active_users_count if owner_has_posted else active_users_count + 1
+        context['category_choices'] = GroupCategoryChoices.choices
         return context
 
 
@@ -187,7 +201,7 @@ class TopicCreateView(LoginRequiredMixin, NoTemplateActionMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.group = get_object_or_404(Group, pk=self.kwargs.get('group_id'))
         if self.group.owner != request.user and not request.user.is_staff:
-            messages.error(request, "شما اجازه ساخت تاپیک در این انجمن را ندارید.")
+            messages.error(request, "شما اجازه ساخت موضوع در این انجمن را ندارید.")
             return redirect(self.get_success_url())
         return super().dispatch(request, *args, **kwargs)
 
@@ -198,7 +212,7 @@ class TopicCreateView(LoginRequiredMixin, NoTemplateActionMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        messages.success(self.request, "تاپیک با موفقیت ایجاد شد.")
+        messages.success(self.request, "موضوع با موفقیت ایجاد شد.")
         return super().form_valid(form)
 
 
@@ -217,7 +231,7 @@ class TopicUpdateView(LoginRequiredMixin, UserPassesTestMixin, NoTemplateActionM
         return kwargs
 
     def form_valid(self, form):
-        messages.success(self.request, "تاپیک ویرایش شد.")
+        messages.success(self.request, "موضوع ویرایش شد.")
         return super().form_valid(form)
 
 
@@ -229,7 +243,7 @@ class TopicDeleteView(LoginRequiredMixin, UserPassesTestMixin, NoTemplateActionM
         return topic.group.owner == self.request.user or self.request.user.is_staff
 
     def form_valid(self, form):
-        messages.success(self.request, "تاپیک حذف شد.")
+        messages.success(self.request, "موضوع حذف شد.")
         return super().form_valid(form)
 
     def get_success_url(self):
