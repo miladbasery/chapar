@@ -1,143 +1,716 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
-    <a href="javascript:history.back()" style="margin-left: 15px;">←</a>
-    {{ profile.user.username }}
-</div>
+<style>
+    .profile-layout-wrapper {
+        width: calc(100% - 24px);
+        max-width: 1200px;
+        margin: 24px auto 100px auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        direction: rtl;
+        font-family: inherit;
+    }
 
-<div class="compose-box" style="border-bottom: 1px solid var(--border);">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-        <div style="display:flex; gap:15px; align-items:center;">
-            {% if profile.photo %}
-                <img src="{{ profile.photo.url }}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--border);">
-            {% else %}
-                <div style="width:80px; height:80px; border-radius:50%; background:var(--bg-panel); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:28px;">👤</div>
-            {% endif %}
-            <div>
-                <h3 style="font-size:20px; color:var(--text-main);">{{ profile.first_name }} {{ profile.last_name }}</h3>
-                <span style="color:var(--text-muted); font-size:14px;">@{{ profile.user.username }}</span>
+    .profile-sidebar-wrapper {
+        width: 100%;
+    }
+
+    .profile-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        position: relative;
+    }
+
+    .profile-cover-area {
+        height: 120px;
+        background-color: var(--accent, #1d9bf0);
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .profile-avatar-wrap {
+        position: absolute;
+        bottom: -38px;
+        right: 20px;
+    }
+
+    .profile-avatar-img {
+        width: 82px;
+        height: 82px;
+        border-radius: 50%;
+        border: 4px solid var(--bg-panel);
+        object-fit: cover;
+        background: var(--bg-panel);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+    }
+
+    .profile-cover-action-wrap {
+        position: absolute;
+        bottom: -19px;
+        left: 20px;
+        z-index: 10;
+    }
+
+    .btn-action-round {
+        background: var(--bg-panel);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.2s;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-action-round:hover {
+        background: var(--icon-bg-hover);
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    .btn-action-round.active {
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    .profile-body {
+        padding: 38px 20px 20px 20px;
+    }
+
+    .profile-name-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .profile-name-row h2 {
+        font-size: 19px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 48%;
+    }
+
+    .profile-follow-counts {
+        display: flex;
+        gap: 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .profile-follow-counts strong {
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .profile-username-tag {
+        color: var(--text-muted);
+        font-size: 14px;
+        display: block;
+        margin-bottom: 12px;
+        direction: ltr;
+        text-align: right;
+    }
+
+    .profile-stack-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        line-height: 1.4;
+    }
+
+    .profile-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .profile-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .profile-meta-item a {
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+    }
+
+    .profile-meta-item a:hover {
+        color: var(--accent);
+    }
+
+    .meta-divider {
+        color: var(--border);
+        user-select: none;
+    }
+
+    .profile-main-content {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nav-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: transparent;
+    }
+
+    .nav-tab {
+        flex: 1;
+        text-align: center;
+        padding: 16px 0;
+        color: var(--text-muted);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        position: relative;
+        white-space: nowrap;
+        transition: 0.2s;
+    }
+
+    .nav-tab:hover {
+        background: var(--icon-bg-hover);
+    }
+
+    .nav-tab.active {
+        color: var(--text-main);
+    }
+
+    .nav-tab.active::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 3px;
+        background-color: var(--accent);
+        border-radius: 9999px;
+    }
+
+    .sub-tabs {
+        display: flex;
+        gap: 8px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+    }
+
+    .sub-tab {
+        padding: 6px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+    .sub-tab:hover {
+        border-color: var(--text-main);
+        color: var(--text-main);
+    }
+
+    .sub-tab.active {
+        background: var(--text-main);
+        color: var(--bg-panel);
+        border-color: var(--text-main);
+    }
+
+    .tab-content, .sub-tab-content {
+        display: none;
+    }
+
+    .tab-content.active, .sub-tab-content.active {
+        display: block;
+    }
+
+    .tweets-feed-wrap {
+        padding: 16px;
+    }
+
+    .resume-container {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .resume-block {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .resume-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .resume-heading svg {
+        color: var(--accent);
+    }
+
+    .resume-summary-text {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-main);
+        margin: 0;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        white-space: pre-wrap;
+    }
+
+    .timeline-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .timeline-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        transition: 0.2s;
+    }
+
+    .timeline-card:hover {
+        border-color: rgba(29, 155, 240, 0.4);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .timeline-main h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .timeline-subtitle {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .timeline-date-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        font-size: 11px;
+    }
+
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tag-pill {
+        padding: 6px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .project-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: 0.2s;
+    }
+
+    .project-card:hover {
+        border-color: rgba(29, 155, 240, 0.4);
+    }
+
+    .project-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .project-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .project-link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .project-desc {
+        color: var(--text-muted);
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    @media (min-width: 992px) {
+        .profile-layout-wrapper {
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .profile-sidebar-wrapper {
+            width: 340px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 75px;
+        }
+    }
+</style>
+
+<div class="profile-layout-wrapper">
+    <div class="profile-sidebar-wrapper">
+        <div class="profile-card">
+            <div class="profile-cover-area" {% if profile.cover_photo %}style="background-image: url('{{ profile.cover_photo.url }}');"{% endif %}>
+                <div class="profile-avatar-wrap">
+                    {% if profile.photo %}
+                        <img src="{{ profile.photo.url }}" class="profile-avatar-img">
+                    {% else %}
+                        <div class="profile-avatar-img">👤</div>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-cover-action-wrap">
+                    {% if request.user == profile.user %}
+                        <a href="{% url 'profile_edit' %}" class="btn-action-round" title="تنظیمات حساب">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        </a>
+                    {% else %}
+                        <div style="display:flex; gap:8px;">
+                            <form action="{% url 'chat:start_direct' %}" method="post" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="recipient" value="{{ profile.user.pk }}">
+                                <button type="submit" class="btn-action-round" title="ارسال پیام">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </button>
+                            </form>
+                            <form action="{% url 'toggle_follow' %}" method="post" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ profile.user.pk }}">
+                                {% if is_following %}
+                                    <button type="submit" class="btn-action-round active" title="لغو دنبال‌کردن">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn-action-round" title="دنبال‌کردن">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-body">
+                <div class="profile-name-row">
+                    <h2>{{ profile.first_name }} {{ profile.last_name }}</h2>
+                    <div class="profile-follow-counts">
+                        <span><strong>{{ following_count }}</strong> دنبال‌شونده</span>
+                        <span><strong>{{ followers_count }}</strong> دنبال‌کننده</span>
+                    </div>
+                </div>
+
+                <span class="profile-username-tag">@{{ profile.user.username }}</span>
+
+                {% if profile.stack_choice %}
+                    <div class="profile-stack-pill">
+                        {{ profile.get_stack_choice_display }}
+                    </div>
+                {% endif %}
+
+                <div class="profile-meta-row">
+                    {% if profile.address %}
+                        <span class="profile-meta-item">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {{ profile.address }}
+                        </span>
+                    {% endif %}
+                    {% if profile.age %}
+                        {% if profile.address %}<span class="meta-divider">|</span>{% endif %}
+                        <span class="profile-meta-item">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            {{ profile.age }} سال
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if profile.github or profile.linkedin or profile.telegram %}
+                    <div class="profile-meta-row" style="margin-bottom: 0;">
+                        {% if profile.github %}
+                            <span class="profile-meta-item">
+                                <a href="{{ profile.github }}" target="_blank">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                                    <span>گیت‌هاب</span>
+                                </a>
+                            </span>
+                        {% endif %}
+
+                        {% if profile.linkedin %}
+                            {% if profile.github %}<span class="meta-divider">|</span>{% endif %}
+                            <span class="profile-meta-item">
+                                <a href="{{ profile.linkedin }}" target="_blank">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                                    <span>لینکدین</span>
+                                </a>
+                            </span>
+                        {% endif %}
+
+                        {% if profile.telegram %}
+                            {% if profile.github or profile.linkedin %}<span class="meta-divider">|</span>{% endif %}
+                            <span class="profile-meta-item">
+                                <a href="https://t.me/{{ profile.telegram }}" target="_blank">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    <span>تلگرام</span>
+                                </a>
+                            </span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-main-content">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchMainTab('tweets')">پست‌ها</div>
+            <div class="nav-tab" onclick="switchMainTab('articles')">مقاله‌ها</div>
+            <div class="nav-tab" onclick="switchMainTab('resume')">رزومه</div>
+        </div>
+
+        <div id="tweets" class="tab-content active">
+            <div class="sub-tabs">
+                <div class="sub-tab active" onclick="switchSubTab('sub-tweets')">پست‌ها</div>
+                <div class="sub-tab" onclick="switchSubTab('sub-replies')">پاسخ‌ها</div>
+                <div class="sub-tab" onclick="switchSubTab('sub-retweets')">بازنشرها</div>
+            </div>
+
+            <div id="sub-tweets" class="sub-tab-content active tweets-feed-wrap">
+                {% for tweet in tweets %}
+                    {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+                {% empty %}
+                    <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px;">پستی ثبت نشده است.</div>
+                {% endfor %}
+            </div>
+
+            <div id="sub-replies" class="sub-tab-content tweets-feed-wrap">
+                {% for tweet in replies %}
+                    {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+                {% empty %}
+                    <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px;">پاسخی ثبت نشده است.</div>
+                {% endfor %}
+            </div>
+
+            <div id="sub-retweets" class="sub-tab-content tweets-feed-wrap">
+                {% for tweet in retweets %}
+                    {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+                {% empty %}
+                    <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px;">بازنشری ثبت نشده است.</div>
+                {% endfor %}
             </div>
         </div>
 
-        {% if request.user == profile.user %}
-            <div style="display:flex; gap:8px;">
-                <a href="{% url 'profile_edit' %}" class="btn btn-outline btn-sm">ویرایش پروفایل</a>
-                <form action="{% url 'account_delete' %}" method="post" onsubmit="return confirm('آیا از غیرفعال‌سازی حساب خود مطمئن هستید؟');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">حذف اکانت</button>
-                </form>
-            </div>
-        {% else %}
-            <form action="{% url 'chat:start_direct' %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="recipient" value="{{ profile.user.pk }}">
-                <button type="submit" class="btn btn-sm">ارسال پیام</button>
-            </form>
-        {% endif %}
-    </div>
-
-    {% if profile.stack_choice %}
-        <span class="badge" style="margin-bottom:12px;">{{ profile.get_stack_choice_display }}</span>
-    {% endif %}
-
-    {% if profile.summary %}
-        <p style="color:var(--text-main); font-size:15px; margin-bottom:15px; white-space:pre-wrap;">{{ profile.summary }}</p>
-    {% endif %}
-
-    <div style="display:flex; flex-wrap:wrap; gap:15px; color:var(--text-muted); font-size:13px;">
-        {% if profile.email %}<span>📧 {{ profile.email }}</span>{% endif %}
-        {% if profile.github %}<a href="{{ profile.github }}" target="_blank">🐙 گیت‌هاب</a>{% endif %}
-        {% if profile.linkedin %}<a href="{{ profile.linkedin }}" target="_blank">💼 لینکدین</a>{% endif %}
-        {% if profile.telegram %}<span>✈️ {{ profile.telegram }}</span>{% endif %}
-    </div>
-</div>
-
-<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <h4 style="font-size:18px;">سوابق شغلی</h4>
-    {% if request.user == profile.user %}
-        <a href="{% url 'work_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
-    {% endif %}
-</div>
-{% for item in profile.work_experiences.all %}
-    <div class="list-item">
-        <div class="list-content">
-            <h4>{{ item.title }} @ {{ item.company }}</h4>
-            <p>{{ item.start_date }} تا {% if item.is_current %}اکنون{% else %}{{ item.end_date }}{% endif %}</p>
+        <div id="articles" class="tab-content tweets-feed-wrap">
+            {% for tweet in stack_tweets %}
+                {% include 'tweeter/tweet_card.html' with tweet=tweet %}
+            {% empty %}
+                <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px;">مقاله‌ای ثبت نشده است.</div>
+            {% endfor %}
         </div>
-        {% if request.user == profile.user %}
-            <div style="display:flex; gap:8px;">
-                <a href="{% url 'work_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
-                <a href="{% url 'work_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
-            </div>
-        {% endif %}
-    </div>
-{% empty %}
-    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">سابقه شغلی ثبت نشده است.</div>
-{% endfor %}
 
-<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <h4 style="font-size:18px;">تحصیلات</h4>
-    {% if request.user == profile.user %}
-        <a href="{% url 'education_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
-    {% endif %}
-</div>
-{% for item in profile.educations.all %}
-    <div class="list-item">
-        <div class="list-content">
-            <h4>{{ item.degree }} {{ item.field_of_study }}</h4>
-            <p>{{ item.school_name }}</p>
-        </div>
-        {% if request.user == profile.user %}
-            <div style="display:flex; gap:8px;">
-                <a href="{% url 'education_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
-                <a href="{% url 'education_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
-            </div>
-        {% endif %}
-    </div>
-{% empty %}
-    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">اطلاعات تحصیلی ثبت نشده است.</div>
-{% endfor %}
+        <div id="resume" class="tab-content">
+            <div class="resume-container">
+                {% if profile.summary %}
+                    <div class="resume-block">
+                        <h3 class="resume-heading">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            درباره من
+                        </h3>
+                        <p class="resume-summary-text">{{ profile.summary }}</p>
+                    </div>
+                {% endif %}
 
-<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <h4 style="font-size:18px;">مهارت‌ها</h4>
-    {% if request.user == profile.user %}
-        <a href="{% url 'skill_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
-    {% endif %}
-</div>
-<div style="padding: 15px 20px; display:flex; flex-wrap:wrap; gap:8px; border-bottom: 1px solid var(--border);">
-    {% for item in profile.skills.all %}
-        <div class="badge" style="display:flex; align-items:center; gap:8px; padding:6px 12px; font-size:14px;">
-            <span>{{ item.name }}</span>
-            {% if request.user == profile.user %}
-                <a href="{% url 'skill_delete' item.pk %}" style="color:var(--danger); text-decoration:none;">×</a>
-            {% endif %}
+                {% if profile.work_experiences.all %}
+                    <div class="resume-block">
+                        <h3 class="resume-heading">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            سوابق شغلی
+                        </h3>
+                        <div class="timeline-list">
+                            {% for item in profile.work_experiences.all %}
+                                <div class="timeline-card">
+                                    <div class="timeline-main">
+                                        <h4>{{ item.title }}</h4>
+                                        <div class="timeline-subtitle">{{ item.company }}</div>
+                                        <span class="timeline-date-badge">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            {{ item.start_date }} تا {% if item.is_current %}اکنون{% else %}{{ item.end_date }}{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if profile.educations.all %}
+                    <div class="resume-block">
+                        <h3 class="resume-heading">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                            تحصیلات
+                        </h3>
+                        <div class="timeline-list">
+                            {% for item in profile.educations.all %}
+                                <div class="timeline-card">
+                                    <div class="timeline-main">
+                                        <h4>{{ item.degree }} {{ item.field_of_study }}</h4>
+                                        <div class="timeline-subtitle">{{ item.school_name }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if profile.skills.all %}
+                    <div class="resume-block">
+                        <h3 class="resume-heading">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            مهارت‌ها
+                        </h3>
+                        <div class="tag-cloud">
+                            {% for item in profile.skills.all %}
+                                <span class="tag-pill">{{ item.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if profile.projects.all %}
+                    <div class="resume-block">
+                        <h3 class="resume-heading">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                            پروژه‌ها
+                        </h3>
+                        <div class="timeline-list">
+                            {% for item in profile.projects.all %}
+                                <div class="project-card">
+                                    <div class="project-header-row">
+                                        <h4 class="project-title">{{ item.title }}</h4>
+                                        {% if item.link %}
+                                            <a href="{{ item.link }}" target="_blank" class="project-link-btn">
+                                                <span>مشاهده</span>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    {% if item.description %}
+                                        <p class="project-desc">{{ item.description }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if not profile.summary and not profile.work_experiences.all and not profile.educations.all and not profile.skills.all and not profile.projects.all %}
+                    <div style="padding:40px; text-align:center; color:var(--text-muted); font-size:14px;">رزومه‌ای ثبت نشده است.</div>
+                {% endif %}
+            </div>
         </div>
-    {% empty %}
-        <div style="color:var(--text-muted); font-size:14px;">مهارتی افزوده نشده است.</div>
-    {% endfor %}
+    </div>
 </div>
 
-<div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <h4 style="font-size:18px;">پروژه‌ها</h4>
-    {% if request.user == profile.user %}
-        <a href="{% url 'project_add' %}" class="btn btn-outline btn-sm">+ افزودن</a>
-    {% endif %}
-</div>
-{% for item in profile.projects.all %}
-    <div class="list-item">
-        <div class="list-content">
-            <h4>{{ item.title }}</h4>
-            <p>{{ item.description }}</p>
-            {% if item.link %}<a href="{{ item.link }}" target="_blank" style="font-size:13px;">مشاهده پروژه</a>{% endif %}
-        </div>
-        {% if request.user == profile.user %}
-            <div style="display:flex; gap:8px;">
-                <a href="{% url 'project_edit' item.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
-                <a href="{% url 'project_delete' item.pk %}" class="btn btn-danger btn-sm">حذف</a>
-            </div>
-        {% endif %}
-    </div>
-{% empty %}
-    <div style="padding:15px 20px; color:var(--text-muted); font-size:14px;">پروژه‌ای ثبت نشده است.</div>
-{% endfor %}
+<script>
+    function switchMainTab(tabId) {
+        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function switchSubTab(subTabId) {
+        document.querySelectorAll('.sub-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById(subTabId).classList.add('active');
+    }
+</script>
 {% endblock %}

@@ -1,27 +1,355 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
-    <a href="{% url 'profile_detail_me' %}" style="margin-left: 15px;">←</a>
-    مدیریت بخش رزومه
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+
+<style>
+    .settings-unified-box {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 24px auto 100px auto;
+        width: calc(100% - 24px);
+        max-width: 1200px;
+        direction: rtl;
+        font-family: inherit;
+    }
+
+    .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .settings-header h2 {
+        font-size: 16px;
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 800;
+        font-family: inherit;
+    }
+
+    .btn-back {
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        transition: 0.2s;
+        background: var(--input-bg);
+        text-decoration: none;
+    }
+
+    .btn-back:hover {
+        background: var(--icon-bg-hover);
+    }
+
+    .settings-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+    }
+
+    .settings-tab-btn {
+        flex: 1;
+        padding: 10px 8px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-weight: 700;
+        font-size: 13px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+        text-align: center;
+        font-family: inherit;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-tab-btn:hover {
+        color: var(--text-main);
+        border-color: var(--text-main);
+    }
+
+    .settings-tab-btn.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+    }
+
+    .settings-tab-btn.danger:hover {
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+    }
+
+    .form-control {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        transition: 0.2s;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        outline: none;
+    }
+
+    .btn-submit {
+        width: 100%;
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        background: var(--text-main);
+        color: var(--bg-panel);
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-submit:hover {
+        opacity: 0.9;
+    }
+
+    .error-text {
+        color: var(--danger);
+        font-size: 12px;
+        margin-top: 6px;
+        display: block;
+        font-family: inherit;
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .checkbox-wrapper:hover {
+        border-color: var(--accent);
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+        cursor: pointer;
+        margin: 0 0 0 10px;
+    }
+
+    .checkbox-wrapper label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    .datepicker-plot-area {
+        font-family: inherit !important;
+        box-shadow: var(--shadow-base) !important;
+        border: 1px solid var(--glass-border) !important;
+        background: var(--glass-bg) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 12px !important;
+    }
+    
+    .datepicker-plot-area .datepicker-day-view .table-days td span {
+        border-radius: 8px !important;
+    }
+
+    @media (min-width: 992px) {
+        .settings-unified-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 24px;
+            background: transparent;
+            border: none;
+            margin: 20px auto 100px auto;
+        }
+
+        .settings-sidebar-wrapper {
+            width: 260px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 75px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .settings-tabs {
+            flex-direction: column;
+            margin-bottom: 0;
+            gap: 8px;
+        }
+
+        .settings-tab-btn {
+            text-align: right;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            justify-content: flex-start;
+        }
+
+        .settings-tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .settings-main-wrapper {
+            flex: 1;
+            min-width: 0;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .settings-header {
+            display: none;
+        }
+
+        .settings-header-desktop {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+    }
+
+    @media (max-width: 991px) {
+        .settings-sidebar-wrapper {
+            display: contents;
+        }
+        .settings-main-wrapper {
+            display: contents;
+        }
+        .settings-header-desktop {
+            display: none;
+        }
+    }
+</style>
+
+<div class="settings-unified-box">
+    <div class="settings-sidebar-wrapper">
+        <div class="settings-header">
+            <a href="{% url 'profile_edit' %}" class="btn-back">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <h2>ثبت و ویرایش اطلاعات</h2>
+        </div>
+
+        <div class="settings-tabs">
+            <a href="{% url 'profile_edit' %}" class="settings-tab-btn">تنظیمات اصلی</a>
+            <a href="{% url 'profile_edit' %}" class="settings-tab-btn active">تنظیمات رزومه</a>
+            <a href="{% url 'profile_edit' %}" class="settings-tab-btn danger">حذف اکانت</a>
+        </div>
+    </div>
+
+    <div class="settings-main-wrapper">
+        <div class="settings-header-desktop">
+            <a href="{% url 'profile_edit' %}" class="btn-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <h2 style="font-size:20px; margin:0; color:var(--text-main); font-weight:800;">ثبت و ویرایش اطلاعات</h2>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="checkbox-wrapper" onclick="document.getElementById('{{ field.id_for_label }}').click();">
+                            {{ field }}
+                            <label for="{{ field.id_for_label }}">
+                                {% if field.name == 'is_current' %}در حال حاضر اینجا مشغولم{% else %}{{ field.label }}{% endif %}
+                            </label>
+                        </div>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}">
+                            {% if field.name == 'title' %}عنوان{% elif field.name == 'company' %}شرکت / سازمان{% elif field.name == 'start_date' %}تاریخ شروع{% elif field.name == 'end_date' %}تاریخ پایان{% elif field.name == 'school_name' %}نام دانشگاه / موسسه{% elif field.name == 'degree' %}مدرک تحصیلی{% elif field.name == 'field_of_study' %}رشته تحصیلی{% elif field.name == 'name' %}نام{% elif field.name == 'level' %}سطح / میزان تسلط{% elif field.name == 'issuer' %}مرجع صادرکننده{% elif field.name == 'issue_date' %}تاریخ صدور{% elif field.name == 'description' %}توضیحات{% elif field.name == 'link' %}لینک (URL){% else %}{{ field.label }}{% endif %}
+                        </label>
+                        {{ field }}
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                        <span class="error-text">{{ field.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn-submit">ذخیره اطلاعات</button>
+        </form>
+    </div>
 </div>
-<div class="compose-box" style="padding: 25px 20px;">
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                <label style="display:block; margin-bottom:8px; color:var(--text-muted);">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                    <span style="color:var(--danger); font-size:12px;">{{ field.errors.0 }}</span>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <button type="submit" class="btn" style="width:100%; margin-top:10px;">ثبت تغییرات</button>
-    </form>
-</div>
+
+<script src="https://unpkg.com/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 <script>
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-        if(el.type !== 'checkbox') el.classList.add('form-control');
+    document.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(el => {
+        el.classList.add('form-control');
+    });
+
+    $(document).ready(function() {
+        $('input[name*="date"]').each(function() {
+            let input = $(this);
+            input.attr('autocomplete', 'off');
+            input.attr('placeholder', 'مثال: ۱۴۰۳/۰۶/۰۱');
+            
+            input.persianDatepicker({
+                format: 'YYYY/MM/DD',
+                initialValue: false,
+                autoClose: true,
+                toolbox: {
+                    calendarSwitch: { enabled: false }
+                },
+                onSelect: function(unix) {
+                    input.val(new persianDate(unix).format('YYYY/MM/DD'));
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

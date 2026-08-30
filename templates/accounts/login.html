@@ -1,21 +1,181 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">ورود به حساب کاربری</div>
-<div class="compose-box" style="padding: 30px 20px;">
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">نام کاربری</label>
-            <input type="text" name="username" class="form-control" required autofocus>
+<style>
+    header, footer, nav, .bottom-nav, #mobileNav, .app-header {
+        display: none !important;
+    }
+
+    .auth-page-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 12px;
+        direction: rtl;
+        font-family: inherit;
+    }
+
+    .auth-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 36px 28px;
+        width: 100%;
+        max-width: 440px;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: var(--shadow-base);
+    }
+
+    .auth-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 28px;
+        text-align: center;
+    }
+
+    .auth-brand img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .auth-brand h2 {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    .auth-brand p {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: 0.2s;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        outline: none;
+        background: var(--icon-bg-hover);
+    }
+
+    .btn-auth-submit {
+        width: 100%;
+        margin-top: 10px;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        background: var(--text-main);
+        color: var(--bg-panel);
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-auth-submit:hover {
+        opacity: 0.9;
+    }
+
+    .auth-footer-link {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .auth-footer-link a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 700;
+        margin-right: 4px;
+    }
+
+    .auth-footer-link a:hover {
+        text-decoration: underline;
+    }
+
+    .auth-error-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--danger);
+        color: var(--danger);
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+</style>
+
+<div class="auth-page-wrapper">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <img src="/static/logo/logo2.png" alt="چاپار">
+            <h2>ورود به چاپار</h2>
+            <p>برای دسترسی به حساب کاربری خود وارد شوید</p>
         </div>
-        <div class="form-group">
-            <label style="display:block; margin-bottom:8px; color:var(--text-muted);">رمز عبور</label>
-            <input type="password" name="password" class="form-control" required>
+
+        {% if form.non_field_errors %}
+            <div class="auth-error-box">
+                {% for error in form.non_field_errors %}
+                    <p style="margin: 0 0 4px 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>نام کاربری</label>
+                <input type="text" name="username" class="form-control" required autofocus placeholder="نام کاربری خود را وارد کنید">
+                {% if form.username.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:6px;">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <input type="password" name="password" class="form-control" required placeholder="رمز عبور خود را وارد کنید">
+                {% if form.password.errors %}
+                    <span style="color:var(--danger); font-size:12px; display:block; margin-top:6px;">{{ form.password.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-auth-submit">ورود به حساب</button>
+        </form>
+
+        <div class="auth-footer-link">
+            حساب کاربری ندارید؟ <a href="{% url 'register' %}">ثبت‌نام کنید</a>
         </div>
-        <button type="submit" class="btn" style="width:100%; margin-top:10px;">ورود</button>
-    </form>
-    <div style="margin-top:20px; text-align:center; font-size:14px; color:var(--text-muted);">
-        حساب کاربری ندارید؟ <a href="{% url 'register' %}">ثبت‌نام کنید</a>
     </div>
 </div>
 {% endblock %}

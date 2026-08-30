@@ -1,13 +1,243 @@
+<style>
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 140px;
+        transition: 0.3s ease;
+    }
+
+    .search-wrapper.active {
+        max-width: 250px;
+    }
+
+    .search-input {
+        background: var(--input-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-main);
+        padding: 10px 40px 10px 16px;
+        border-radius: 9999px;
+        font-size: 14px;
+        width: 100%;
+        outline: none;
+        transition: 0.3s ease;
+        font-family: inherit;
+    }
+
+    .search-input:focus {
+        background: var(--icon-bg-hover);
+        border-color: var(--accent);
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 14px;
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    .search-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        width: 100%;
+        min-width: 250px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: var(--shadow-base);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 1001;
+    }
+
+    .search-dropdown.show {
+        display: flex;
+    }
+
+    .search-item {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        border-bottom: 1px solid var(--border);
+        transition: 0.2s;
+    }
+
+    .search-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-item:hover {
+        background: var(--icon-bg-hover);
+    }
+
+    .search-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--bg-panel);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: var(--text-main);
+        flex-shrink: 0;
+    }
+
+    .search-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .search-name {
+        color: var(--text-main);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .search-sub {
+        color: var(--text-muted);
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .search-all-btn {
+        padding: 12px;
+        text-align: center;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        background: rgba(29, 155, 240, 0.05);
+    }
+    
+    .search-all-btn:hover {
+        background: rgba(29, 155, 240, 0.1);
+    }
+</style>
+
 <header style="position: sticky; top: 12px; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 24px; width: calc(100% - 24px); max-width: 1200px; margin: 0 auto; direction: rtl; box-shadow: var(--shadow-base);">
     <button id="menuToggle" style="background: transparent; border: none; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 50%; transition: 0.2s;" onmouseover="this.style.background='var(--icon-bg-hover)'" onmouseout="this.style.background='transparent'">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
     </button>
+    
     <div style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--text-main);">
         <img src="/static/logo/logo2.png" alt="چاپار" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
         <span>چاپار</span>
     </div>
-    <div style="position: relative; display: flex; align-items: center;">
-        <svg style="position: absolute; right: 14px; color: var(--text-muted); pointer-events: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" placeholder="جستجو..." style="background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 10px 40px 10px 16px; border-radius: 9999px; font-size: 14px; width: 100%; max-width: 140px; outline: none; transition: 0.3s ease; font-family: inherit;" onfocus="this.style.background='var(--icon-bg-hover)'; this.style.borderColor='var(--accent)'; this.style.maxWidth='200px';" onblur="this.style.background='var(--input-bg)'; this.style.borderColor='var(--glass-border)'; this.style.maxWidth='140px';">
+
+    <div class="search-wrapper" id="searchWrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <form action="/search/" method="get" style="width: 100%; margin: 0;">
+            <input type="text" name="q" id="searchInput" class="search-input" placeholder="جستجو..." autocomplete="off">
+        </form>
+        <div class="search-dropdown" id="searchDropdown"></div>
     </div>
 </header>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchDropdown = document.getElementById('searchDropdown');
+        const searchWrapper = document.getElementById('searchWrapper');
+        let timeout = null;
+
+        if (!searchInput) return;
+
+        searchInput.addEventListener('focus', () => {
+            searchWrapper.classList.add('active');
+            if (searchInput.value.trim().length > 0) {
+                searchDropdown.classList.add('show');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchWrapper.contains(e.target)) {
+                searchDropdown.classList.remove('show');
+                searchWrapper.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(timeout);
+            
+            if (query.length === 0) {
+                searchDropdown.classList.remove('show');
+                searchDropdown.innerHTML = '';
+                return;
+            }
+
+            timeout = setTimeout(() => {
+                fetch(`/search/?q=${encodeURIComponent(query)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    searchDropdown.innerHTML = '';
+                    let hasResults = false;
+
+                    if (data.users && data.users.length > 0) {
+                        hasResults = true;
+                        data.users.forEach(user => {
+                            const avatarHtml = user.avatar 
+                                ? `<img src="${user.avatar}" class="search-avatar">` 
+                                : `<div class="search-avatar">👤</div>`;
+                            
+                            searchDropdown.innerHTML += `
+                                <a href="${user.url}" class="search-item">
+                                    ${avatarHtml}
+                                    <div class="search-info">
+                                        <span class="search-name">${user.name || user.username}</span>
+                                        <span class="search-sub">@${user.username}</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    }
+
+                    if (data.tweets && data.tweets.length > 0) {
+                        hasResults = true;
+                        data.tweets.forEach(tweet => {
+                            searchDropdown.innerHTML += `
+                                <a href="${tweet.url}" class="search-item">
+                                    <div class="search-avatar" style="background: rgba(29,155,240,0.1); color: var(--accent);">#</div>
+                                    <div class="search-info">
+                                        <span class="search-name">${tweet.text}</span>
+                                        <span class="search-sub">@${tweet.username}</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    }
+
+                    if (hasResults) {
+                        searchDropdown.innerHTML += `
+                            <a href="/search/?q=${encodeURIComponent(query)}" class="search-all-btn">مشاهده همه نتایج</a>
+                        `;
+                        searchDropdown.classList.add('show');
+                    } else {
+                        searchDropdown.innerHTML = `
+                            <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">نتیجه‌ای یافت نشد.</div>
+                        `;
+                        searchDropdown.classList.add('show');
+                    }
+                });
+            }, 400);
+        });
+    });
+</script>

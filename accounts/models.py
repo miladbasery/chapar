@@ -16,47 +16,44 @@ class RoleChoices(models.TextChoices):
 
 
 class StackChoices(models.TextChoices):
-
-    BACKEND_PYTHON_DEV = 'backend_python_dev', 'توسعه‌دهنده بک‌اند پایتون (Python / Django Developer)'
-    BACKEND_NODE_DEV = 'backend_node_dev', 'توسعه‌دهنده بک‌اند نود (Node.js Developer)'
-    BACKEND_GO_RUST_DEV = 'backend_go_rust_dev', 'توسعه‌دهنده سیستم و بک‌اند (Go / Rust Developer)'
-    BACKEND_JAVA_DEV = 'backend_java_dev', 'توسعه‌دهنده جاوا (Java Developer)'
-    BACKEND_DOTNET_DEV = 'backend_dotnet_dev', 'توسعه‌دهنده دات‌نت (.NET / C# Developer)'
-    BACKEND_PHP_DEV = 'backend_php_dev', 'توسعه‌دهنده پی‌اچ‌پی (PHP / Laravel Developer)'
-    FRONTEND_REACT_DEV = 'frontend_react_dev', 'توسعه‌دهنده فرانت‌اند ری‌اکت (React / Next.js Developer)'
-    FRONTEND_VUE_ANGULAR_DEV = 'frontend_vue_angular_dev', 'توسعه‌دهنده فرانت‌اند (Vue / Angular Developer)'
-    MOBILE_CROSS_DEV = 'mobile_cross_dev', 'برنامه‌نویس موبایل کراس‌پلتفرم (Flutter / React Native)'
-    MOBILE_NATIVE_DEV = 'mobile_native_dev', 'برنامه‌نویس موبایل نیتیو (Android / iOS Developer)'
-    DEVOPS_SRE_ENG = 'devops_sre_eng', 'مهندس دواپس و پایداری (DevOps / SRE Engineer)'
-    CLOUD_ENG = 'cloud_eng', 'مهندس زیرساخت و ابری (Cloud Infrastructure Engineer)'
-    AI_ML_ENG = 'ai_ml_eng', 'متخصص هوش مصنوعی و یادگیری ماشین (AI / ML Engineer)'
-    DATA_ENG = 'data_eng', 'مهندس کلان‌داده و پایپ‌لاین (Data Engineer)'
-    DATA_ANALYST = 'data_analyst', 'تحلیل‌گر داده و هوش تجاری (Data Analyst / BI Specialist)'
-    SECURITY_PENTESTER = 'security_pentester', 'متخصص امنیت سایبری و هکر قانونمند (Security Researcher / Pentester)'
-    BLOCKCHAIN_DEV = 'blockchain_dev', 'توسعه‌دهنده بلاکچین و قراردادهای هوشمند (Blockchain / Web3 Developer)'
-    GAME_DEV = 'game_dev', 'توسعه‌دهنده بازی‌های ویدیویی (Game Developer)'
-    EMBEDDED_IOT_ENG = 'embedded_iot_eng', 'مهندس امبدد و اینترنت اشیاء (Embedded & IoT Engineer)'
-    QA_AUTOMATION_ENG = 'qa_automation_eng', 'مهندس تضمین کیفیت و تست خودکار (QA / Automation Engineer)'
-    UI_UX_DESIGNER = 'ui_ux_designer', 'طراح رابط و تجربه کاربری (UI/UX Product Designer)'
-    PRODUCT_MANAGER = 'product_manager', 'مدیر و مالک محصول (Product Manager / Owner)'
-    SCRUM_MASTER_PM = 'scrum_master_pm', 'مدیر پروژه چابک و اسکرام‌مستر (Scrum Master / Agile PM)'
-    DBA_SPECIALIST = 'dba_specialist', 'مدیر و متخصص پایگاه داده (Database Administrator / DBA)'
-    SYSTEM_ARCHITECT = 'system_architect', 'معمار نرم‌افزار و سیستم‌های توزیع‌شده (System Architect)'
-    OPEN_SOURCE_CONTRIBUTOR = 'open_source_contributor', 'مشارکت‌کننده فعال متن‌باز (Open Source Contributor)'
-
+    BACKEND_PYTHON_DEV = 'backend_python_dev', 'Python / Django Developer'
+    BACKEND_NODE_DEV = 'backend_node_dev', 'Node.js Developer'
+    BACKEND_GO_RUST_DEV = 'backend_go_rust_dev', 'Go / Rust Developer'
+    BACKEND_JAVA_DEV = 'backend_java_dev', 'Java Developer'
+    BACKEND_DOTNET_DEV = 'backend_dotnet_dev', '.NET / C# Developer'
+    BACKEND_PHP_DEV = 'backend_php_dev', 'PHP / Laravel Developer'
+    FRONTEND_REACT_DEV = 'frontend_react_dev', 'React / Next.js Developer'
+    FRONTEND_VUE_ANGULAR_DEV = 'frontend_vue_angular_dev', 'Vue / Angular Developer'
+    MOBILE_CROSS_DEV = 'mobile_cross_dev', 'Mobile Developer'
+    MOBILE_NATIVE_DEV = 'mobile_native_dev', 'Mobile Native Developer'
+    DEVOPS_SRE_ENG = 'devops_sre_eng', 'DevOps / SRE Engineer'
+    CLOUD_ENG = 'cloud_eng', 'Cloud Infrastructure Engineer'
+    AI_ML_ENG = 'ai_ml_eng', 'AI / ML Engineer'
+    DATA_ENG = 'data_eng', 'Data Engineer'
+    DATA_ANALYST = 'data_analyst', 'Data Analyst / BI Specialist'
+    SECURITY_PENTESTER = 'security_pentester', 'Security Researcher / Pentester'
+    BLOCKCHAIN_DEV = 'blockchain_dev', 'Blockchain / Web3 Developer'
+    GAME_DEV = 'game_dev', 'Game Developer'
+    EMBEDDED_IOT_ENG = 'embedded_iot_eng', 'Embedded & IoT Engineer'
+    QA_AUTOMATION_ENG = 'qa_automation_eng', 'QA / Automation Engineer'
+    UI_UX_DESIGNER = 'ui_ux_designer', 'UI/UX Product Designer'
+    PRODUCT_MANAGER = 'product_manager', 'Product Manager / Owner'
+    SCRUM_MASTER_PM = 'scrum_master_pm', 'Scrum Master / Agile PM'
+    DBA_SPECIALIST = 'dba_specialist', 'Database Administrator / DBA'
+    SYSTEM_ARCHITECT = 'system_architect', 'System Architect'
+    OPEN_SOURCE_CONTRIBUTOR = 'open_source_contributor', 'Open Source Contributor'
     SELF_GROWTH_EXPLORER = 'self_growth_explorer', 'کاوشگر رشد فردی و روانشناسی'
-    DEEP_WORKER = 'deep_worker', 'علاقه‌مند به کار عمیق و مایندفولنس (Deep Work Practitioner)'
+    DEEP_WORKER = 'deep_worker', 'Deep Work Practitioner'
     PRODUCTIVITY_ENTHUSIAST = 'productivity_enthusiast', 'خوره بهره‌وری و سیستم‌های عادات'
-    MENTOR_ADVISOR = 'mentor_advisor', 'راهنما و مشاور مسیر شغلی (Career Mentor)'
+    MENTOR_ADVISOR = 'mentor_advisor', 'راهنما و مشاور مسیر شغلی'
     TECH_BURNOUT_SURVIVOR = 'tech_burnout_survivor', 'دغدغه‌مند سلامت روان و غلبه بر فرسودگی'
-
-    CASUAL_CHATTER = 'casual_chatter', 'اهل گپ و گفت روزمره و گعده'
     OPTIMIST_VIBER = 'optimist_viber', 'انرژی‌بخش و مثبت‌اندیش'
     BOOK_WORM = 'book_worm', 'کتاب‌خوان و نقدکننده کتاب'
     PODCASTER_CRITIC = 'podcaster_critic', 'شنونده پادکست و نقدگر محتوا'
     MUSIC_ART_LOVER = 'music_art_lover', 'دوست‌دار هنر و موسیقی'
     TECH_MEMER = 'tech_memer', 'خالق و علاقه‌مند به میم‌های دنیای تک'
     CURIOUS_ASKER = 'curious_asker', 'کنجکاو و پرسش‌گر جامعه'
+
 
 class RegistrationCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -126,6 +123,7 @@ class Profile(models.Model):
     telegram = models.CharField(max_length=100, blank=True)
     summary = models.TextField(blank=True)
     photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    cover_photo = models.ImageField(upload_to='covers/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.photo:
@@ -141,6 +139,21 @@ class Profile(models.Model):
                 f"{self.user.username}_profile.jpg", 
                 'image/jpeg', sys.getsizeof(output), None
             )
+            
+        if self.cover_photo:
+            img_c = Image.open(self.cover_photo)
+            if img_c.mode != 'RGB':
+                img_c = img_c.convert('RGB')
+            img_c.thumbnail((1500, 500), Image.Resampling.LANCZOS)
+            output_c = BytesIO()
+            img_c.save(output_c, format='JPEG', quality=75)
+            output_c.seek(0)
+            self.cover_photo = InMemoryUploadedFile(
+                output_c, 'ImageField', 
+                f"{self.user.username}_cover.jpg", 
+                'image/jpeg', sys.getsizeof(output_c), None
+            )
+            
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -151,8 +164,8 @@ class WorkExperience(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='work_experiences')
     title = models.CharField(max_length=150)
     company = models.CharField(max_length=150)
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.CharField(max_length=50)
+    end_date = models.CharField(max_length=50, null=True, blank=True)
     is_current = models.BooleanField(default=False)
 
     def __str__(self):
@@ -204,3 +217,17 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['follower', 'following'], name='unique_follow')
+        ]
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"

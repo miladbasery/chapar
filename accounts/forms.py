@@ -38,9 +38,7 @@ class UserLoginForm(AuthenticationForm):
 
         if username and password:
             if User.objects.filter(username=username, is_deleted=True).exists():
-                raise ValidationError(
-                    "حساب کاربری شما غیرفعال شده است. لطفاً با ادمین در ارتباط باشید."
-                )
+                raise ValidationError("حساب کاربری شما غیرفعال شده است. لطفاً با ادمین در ارتباط باشید.")
 
             self.user_cache = authenticate(
                 self.request,
@@ -65,9 +63,7 @@ class UserRegistrationForm(UserCreationForm):
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username, is_deleted=True).exists():
-            raise ValidationError(
-                "این حساب کاربری غیرفعال شده است. برای بازیابی اکانت خود با ادمین در ارتباط باشید."
-            )
+            raise ValidationError("این حساب کاربری غیرفعال شده است. برای بازیابی اکانت خود با ادمین در ارتباط باشید.")
         return username
 
     def clean_invite_code(self):
@@ -90,7 +86,7 @@ class UserRegistrationForm(UserCreationForm):
         return code_str
 
     def save(self, commit=True):
-        user = super(UserCreationForm, self).save(commit=False)
+        user = super().save(commit=False)
         user.used_invite_code = getattr(self, 'invite_code_obj', None)
         
         if commit:
@@ -105,14 +101,28 @@ class UserRegistrationForm(UserCreationForm):
                 
         return user
 
+
 class ProfileForm(forms.ModelForm):
+    username = forms.CharField(max_length=30, required=True)
+
     class Meta:
         model = Profile
         fields = (
-            'first_name', 'last_name', 'email', 'age',
+            'username', 'first_name', 'last_name', 'email', 'age',
             'address', 'stack_choice', 'linkedin',
-            'github', 'telegram', 'summary', 'photo'
+            'github', 'telegram', 'summary', 'photo', 'cover_photo'
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and hasattr(self.instance, 'user'):
+            self.fields['username'].initial = self.instance.user.username
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exclude(pk=self.instance.user.pk).exists():
+            raise ValidationError("این آیدی قبلاً گرفته شده است.")
+        return sanitize_input(username, max_len=30)
 
     def clean_first_name(self):
         return sanitize_input(self.cleaned_data.get('first_name'), max_len=20)
@@ -120,8 +130,31 @@ class ProfileForm(forms.ModelForm):
     def clean_last_name(self):
         return sanitize_input(self.cleaned_data.get('last_name'), max_len=30)
 
+    def clean_address(self):
+        return sanitize_input(self.cleaned_data.get('address'), max_len=100)
+
     def clean_summary(self):
         return sanitize_input(self.cleaned_data.get('summary'), max_len=500)
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and hasattr(photo, 'size') and photo.size > 2 * 1024 * 1024:
+            raise ValidationError("حجم تصویر پروفایل نباید بیشتر از 2 مگابایت باشد.")
+        return photo
+
+    def clean_cover_photo(self):
+        cover_photo = self.cleaned_data.get('cover_photo')
+        if cover_photo and hasattr(cover_photo, 'size') and cover_photo.size > 2 * 1024 * 1024:
+            raise ValidationError("حجم کاور نباید بیشتر از 2 مگابایت باشد.")
+        return cover_photo
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        profile.user.username = self.cleaned_data['username']
+        if commit:
+            profile.user.save()
+            profile.save()
+        return profile
 
 
 class WorkExperienceForm(forms.ModelForm):

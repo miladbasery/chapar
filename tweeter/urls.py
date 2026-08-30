@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .views import SearchView
+
 
 urlpatterns = [
     path('', views.TweetFeedView.as_view(), name='tweet_feed'),
@@ -26,4 +28,7 @@ urlpatterns = [
 
     path('groups/<int:group_id>/moderation/', views.PendingTweetsModerationView.as_view(), name='group_moderation'),
     path('tweet/<int:pk>/status/', views.TweetStatusUpdateView.as_view(), name='tweet_status_update'),
+
+    path('search/', SearchView.as_view(), name='search'),
+
 ]

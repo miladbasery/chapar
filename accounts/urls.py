@@ -1,11 +1,13 @@
 from django.urls import path
 from . import views
+from .views import ToggleFollowView
 
 urlpatterns = [
     path('register/', views.UserRegistrationView.as_view(), name='register'),
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('logout/', views.UserLogoutView.as_view(), name='logout'),
     path('account/delete/', views.SoftDeleteAccountView.as_view(), name='account_delete'),
+    path('follow/', ToggleFollowView.as_view(), name='toggle_follow'),
 
     path('profile/edit/', views.ProfileUpdateView.as_view(), name='profile_edit'),
     path('profile/me/', views.ProfileDetailView.as_view(), name='profile_detail_me'),

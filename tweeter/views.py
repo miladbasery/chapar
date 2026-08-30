@@ -9,6 +9,61 @@ from django.core.cache import cache
 from .models import Group, Topic, Tweet, TweetImage, TweetLike, TweetStatusChoices
 from .forms import GroupForm, TopicForm, TweetForm, TweetImageForm, TweetModerationForm
 
+from django.http import JsonResponse
+from django.shortcuts import render
+from accounts.models import User
+
+class SearchView(View):
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q', '').strip()
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+        users = []
+        tweets = []
+
+        if query:
+            base_query = query.replace('#', '').strip()
+            
+            if base_query:
+                users = User.objects.filter(
+                    username__icontains=base_query,
+                    is_deleted=False
+                ).select_related('profile')[:15]
+
+                tweets = Tweet.objects.filter(
+                    description__icontains=f"#{base_query}",
+                    status=TweetStatusChoices.APPROVED
+                ).select_related('user', 'user__profile').prefetch_related('images', 'likes', 'retweets')[:15]
+
+        if is_ajax:
+            users_data = []
+            for u in users:
+                avatar_url = u.profile.photo.url if u.profile.photo else None
+                users_data.append({
+                    'username': u.username,
+                    'name': f"{u.profile.first_name} {u.profile.last_name}".strip(),
+                    'avatar': avatar_url,
+                    'url': f"/accounts/profile/{u.username}/"
+                })
+
+            tweets_data = []
+            for t in tweets:
+                tweets_data.append({
+                    'id': t.id,
+                    'username': t.user.username,
+                    'text': t.description[:60] + '...' if len(t.description) > 60 else t.description,
+                    'url': f"/tweet/{t.id}/"
+                })
+
+            return JsonResponse({'users': users_data, 'tweets': tweets_data})
+
+        context = {
+            'query': query,
+            'users': users,
+            'tweets': tweets
+        }
+        return render(request, 'tweeter/search_results.html', context)
+
 MAX_TWEET_IMAGES = 5
 
 def get_client_ip(request):
