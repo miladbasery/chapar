@@ -1,24 +1,24 @@
-<div class="tweet-card" onclick="window.location='{% url 'tweet_detail' tweet.pk %}'">
+<div class="tweet-card" id="tweet-card-{{ tweet.pk }}" onclick="window.location='{% url 'tweet_detail' tweet.pk %}'" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; margin-bottom: 16px; cursor: pointer; transition: 0.2s;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; width: 100%;">
         <div style="display: flex; gap: 12px; align-items: center; width: calc(100% - 32px); overflow: hidden;">
-            <a href="/accounts/profile/{{ tweet.user.username }}/" onclick="event.stopPropagation()" style="text-decoration: none; display: flex; gap: 12px; align-items: center; width: 100%; color: inherit;">
-                <img src="{% if tweet.user.profile.photo %}{{ tweet.user.profile.photo.url }}{% else %}/static/img/default-avatar.png{% endif %}" alt="Avatar" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--glass-border); flex-shrink: 0;">
-                <div style="display: flex; flex-direction: column; overflow: hidden; width: 100%;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-weight: 800; color: var(--text-main); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1;">{{ tweet.user.get_full_name|default:tweet.user.username }}</span>
-                        {% if tweet.user.profile.stack_choice %}
-                            <span style="display: inline-block; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: var(--accent); background: rgba(29, 155, 240, 0.1); padding: 3px 8px; border-radius: 12px; flex-shrink: 0;">{{ tweet.user.profile.get_stack_choice_display }}</span>
-                        {% endif %}
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-top: 2px;">
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@{{ tweet.user.username }}</span>
-                        {% if tweet.topic %}
-                            <span style="font-size: 10px; flex-shrink: 0;">•</span>
-                            <span onclick="event.stopPropagation(); window.location='{% url 'topic_detail' tweet.topic.pk %}';" style="color: var(--accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; transition: 0.2s; cursor: pointer;">{{ tweet.topic.name }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+            <a href="/accounts/profile/{{ tweet.user.username }}/" onclick="event.stopPropagation()" style="flex-shrink: 0;">
+                <img src="{% if tweet.user.profile.photo %}{{ tweet.user.profile.photo.url }}{% else %}/static/img/default-avatar.png{% endif %}" alt="Avatar" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid var(--glass-border);">
             </a>
+            <div style="display: flex; flex-direction: column; overflow: hidden; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 800; color: var(--text-main); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1;">{{ tweet.user.get_full_name|default:tweet.user.username }}</span>
+                    {% if tweet.user.profile.stack_choice %}
+                        <span style="display: inline-block; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: var(--accent); background: rgba(29, 155, 240, 0.1); padding: 3px 8px; border-radius: 12px; flex-shrink: 0;">{{ tweet.user.profile.get_stack_choice_display }}</span>
+                    {% endif %}
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@{{ tweet.user.username }}</span>
+                    {% if tweet.topic %}
+                        <span style="font-size: 10px; flex-shrink: 0;">•</span>
+                        <span onclick="event.stopPropagation(); window.location='{% url 'topic_detail' tweet.topic.pk %}';" style="font-weight: 700; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; transition: 0.2s; cursor: pointer; opacity: 0.9;" id="topic-title-{{ tweet.pk }}">{{ tweet.topic.name }}</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         {% if request.user == tweet.user or request.user.is_staff %}
@@ -34,7 +34,7 @@
         {% endif %}
     </div>
 
-    <div dir="auto" class="tweet-text-content" style="text-align: start; font-size: 15px; color: var(--text-main); white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin-bottom: 16px; flex: 1;">{{ tweet.description }}</div>
+    <div dir="auto" class="tweet-text-content" id="tweet-text-{{ tweet.pk }}" style="text-align: start; font-size: 15px; color: var(--text-main); white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin-bottom: 16px; flex: 1;">{{ tweet.description }}</div>
 
     {% if tweet.images.all %}
     <div style="display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin-bottom: 15px; border-radius: 16px; scrollbar-width: none; padding-bottom: 4px;">
@@ -73,11 +73,11 @@
             <span>{{ tweet.retweets.count }}</span>
         </button>
 
-        <form action="{% url 'tweet_like_toggle' tweet.pk %}" method="post" style="margin: 0;">
+        <form onsubmit="toggleLike(event, '{{ tweet.pk }}', '{% url 'tweet_like_toggle' tweet.pk %}')" style="margin: 0;">
             {% csrf_token %}
-            <button type="submit" style="display: flex; align-items: center; gap: 6px; color: {% if request.user in tweet.likes.all %}var(--danger){% else %}var(--text-muted){% endif %}; font-size: 13px; background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; padding: 0;" onmouseover="this.style.color='var(--danger)';" onmouseout="this.style.color='{% if request.user in tweet.likes.all %}var(--danger){% else %}var(--text-muted){% endif %}';">
+            <button type="submit" id="like-btn-{{ tweet.pk }}" class="like-button-style" data-liked="{% if request.user in tweet.likes.all %}true{% else %}false{% endif %}" style="display: flex; align-items: center; gap: 6px; color: {% if request.user in tweet.likes.all %}var(--danger){% else %}var(--text-muted){% endif %}; font-size: 13px; background: transparent; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; padding: 0;">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12z"></path></svg>
-                <span>{{ tweet.likes.count }}</span>
+                <span id="like-count-{{ tweet.pk }}">{{ tweet.likes.count }}</span>
             </button>
         </form>
     </div>
@@ -87,7 +87,16 @@
             <img src="/static/logo/logo2.png" style="width: 18px; height: 18px; border-radius: 50%;">
             <span>چاپار</span>
         </div>
-        <span style="font-size: 12px; color: var(--text-muted); direction: rtl;">{{ tweet.shamsi_date }}</span>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); direction: ltr;">
+            <span dir="rtl">{{ tweet.shamsi_date }}</span>
+            {% if tweet.retweet_of %}
+                <span>|</span>
+                <span dir="rtl">بازنشر</span>
+            {% elif tweet.parent_tweet %}
+                <span>|</span>
+                <span dir="rtl">پاسخ</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -145,3 +154,85 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+    (function(){
+        var el = document.getElementById('tweet-text-{{ tweet.pk }}');
+        if(el && !el.hasAttribute('data-formatted')) {
+            var html = el.innerHTML;
+            html = html.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/accounts/profile/$1/" onclick="event.stopPropagation()" style="color:var(--accent); text-decoration:none;">@$1</a>');
+            html = html.replace(/#([\u0600-\u06FFa-zA-Z0-9_]+)/g, '<a href="/search/?q=%23$1" onclick="event.stopPropagation()" style="color:var(--accent); text-decoration:none;">#$1</a>');
+            el.innerHTML = html;
+            el.setAttribute('data-formatted', 'true');
+        }
+        
+        {% if tweet.topic %}
+        var card = document.getElementById('tweet-card-{{ tweet.pk }}');
+        if(card && !card.hasAttribute('data-colored')) {
+            var colors = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e'];
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            card.style.border = '1px solid ' + color;
+            card.style.boxShadow = '0 0 14px ' + color + '18';
+            var topicTitle = document.getElementById('topic-title-{{ tweet.pk }}');
+            if (topicTitle) topicTitle.style.color = color;
+            card.setAttribute('data-colored', 'true');
+        }
+        {% endif %}
+    })();
+
+    if (typeof toggleLike === 'undefined') {
+        window.toggleLike = function(event, tweetId, url) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const form = event.currentTarget;
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            const btn = document.getElementById('like-btn-' + tweetId);
+            const countSpan = document.getElementById('like-count-' + tweetId);
+            const isLiked = btn.getAttribute('data-liked') === 'true';
+
+            if (isLiked) {
+                btn.style.color = 'var(--text-muted)';
+                btn.setAttribute('data-liked', 'false');
+                countSpan.textContent = parseInt(countSpan.textContent) - 1;
+            } else {
+                btn.style.color = 'var(--danger)';
+                btn.setAttribute('data-liked', 'true');
+                countSpan.textContent = parseInt(countSpan.textContent) + 1;
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                countSpan.textContent = data.count;
+                if(data.liked) {
+                    btn.style.color = 'var(--danger)';
+                    btn.setAttribute('data-liked', 'true');
+                } else {
+                    btn.style.color = 'var(--text-muted)';
+                    btn.setAttribute('data-liked', 'false');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+        
+        document.querySelectorAll('.like-button-style').forEach(btn => {
+            btn.addEventListener('mouseover', function() {
+                this.style.color = 'var(--danger)';
+            });
+            btn.addEventListener('mouseout', function() {
+                if (this.getAttribute('data-liked') === 'true') {
+                    this.style.color = 'var(--danger)';
+                } else {
+                    this.style.color = 'var(--text-muted)';
+                }
+            });
+        });
+    }
+</script>

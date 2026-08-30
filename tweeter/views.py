@@ -1,17 +1,17 @@
 from django.urls import reverse_lazy, reverse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib import messages
 from django.core.cache import cache
+from django.http import JsonResponse
+from django.db.models import Count, Q
 
 from .models import Group, Topic, Tweet, TweetImage, TweetLike, TweetStatusChoices
 from .forms import GroupForm, TopicForm, TweetForm, TweetImageForm, TweetModerationForm
-
-from django.http import JsonResponse
-from django.shortcuts import render
 from accounts.models import User
+from tweeter.models import GroupCategoryChoices
 
 class SearchView(View):
     def get(self, request, *args, **kwargs):
@@ -100,7 +100,19 @@ class GroupListView(ListView):
     model = Group
     template_name = 'tweeter/group_list.html'
     context_object_name = 'groups'
-    ordering = ['-created_at']
+
+    def get_queryset(self):
+        return Group.objects.select_related('owner').prefetch_related('topics').annotate(
+            active_members_count=Count('topics__tweets__user', filter=Q(topics__tweets__status=TweetStatusChoices.APPROVED), distinct=True)
+        ).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['latest_topics'] = Topic.objects.select_related(
+            'group', 'created_by', 'created_by__profile'
+        ).prefetch_related('tweets').annotate(tweet_count=Count('tweets')).order_by('-created_at')[:30]
+        context['category_choices'] = GroupCategoryChoices.choices
+        return context
 
 
 class GroupDetailView(DetailView):
@@ -110,7 +122,7 @@ class GroupDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['topics'] = self.object.topics.all().order_by('-created_at')
+        context['topics'] = self.object.topics.annotate(tweet_count=Count('tweets')).order_by('-created_at')
         return context
 
 
@@ -352,10 +364,20 @@ class TweetLikeToggleView(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         tweet = get_object_or_404(Tweet, pk=pk)
         like_qs = TweetLike.objects.filter(tweet=tweet, user=request.user)
+        is_liked = False
+
         if like_qs.exists():
             like_qs.delete()
         else:
             TweetLike.objects.create(tweet=tweet, user=request.user)
+            is_liked = True
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'liked': is_liked,
+                'count': tweet.likes.count()
+            })
+
         return redirect(request.META.get('HTTP_REFERER', reverse('tweet_feed')))
 
 
